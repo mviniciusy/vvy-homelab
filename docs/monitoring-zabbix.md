@@ -4,7 +4,7 @@
 
 ---
 
-## 8. Monitoramento de Infraestrutura (Zabbix 7.2)
+## 1. Monitoramento de Infraestrutura (Zabbix 7.2)
 
 - **URL:** `http://<ZABBIX_IP>/zabbix`
 

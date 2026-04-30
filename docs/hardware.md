@@ -4,7 +4,7 @@
 
 ---
 
-## 2. Hardware do Host (PC SERVIDOR)
+## 1.1 Hardware do Host (PC SERVIDOR)
 
 ### Processador
 
@@ -27,7 +27,7 @@
 
 ---
 
-## 3. Hardware Cliente e Infraestrutura de Rede
+## 1.2 Hardware Cliente e Infraestrutura de Rede
 
 ### PC Principal: ACER NITRO V15
 

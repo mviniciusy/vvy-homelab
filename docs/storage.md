@@ -4,7 +4,7 @@
 
 ---
 
-## 5. Armazenamento de Dados (HDs – todos 1 TB)
+## 1. Armazenamento de Dados (HDs – todos 1 TB)
 
 |Dispositivo|Tamanho|Sistema|Ponto de Montagem|UUID|
 |---|---|---|---|---|

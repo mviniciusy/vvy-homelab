@@ -4,7 +4,7 @@
 
 ---
 
-## 12. Infraestrutura de IA Local (Ollama)
+## 1. Infraestrutura de IA Local (Ollama)
 
 > Seção adicionada em Abril/2026
 
@@ -12,37 +12,37 @@
 
 ```mermaid
 graph TB
-    subgraph Host Proxmox - vvy
-        Driver[NVIDIA Driver 555.58.02<br/>Host Proxmox]
-        GPU[RTX 3060 12GB<br/>CUDA 12.5]
-    end
+subgraph HostProxmox["Host Proxmox - vvy"]
+Driver["NVIDIA Driver 555.58.02<br/>Host Proxmox"]
+GPU["RTX 3060 12GB<br/>CUDA 12.5"]
+end
 
-    subgraph LXC 102 - ollama Privilegiado
-        DevNVIDIA[/dev/nvidia*<br/>nvidia0, nvidiactl<br/>nvidia-modeset, nvidia-uvm]
-        OllamaSvc[Ollama Service<br/>:11434]
-        Models[Modelos<br/>qwen2.5-coder<br/>qwen3.5:9b<br/>qwen-admin<br/>qwen2-admin]
-    end
+subgraph LXCOllama["LXC 102 - ollama Privilegiado"]
+DevNVIDIA["/dev/nvidia*<br/>nvidia0, nvidiactl<br/>nvidia-modeset, nvidia-uvm"]
+OllamaSvc["Ollama Service<br/>:11434"]
+Models["Modelos<br/>qwen2.5-coder<br/>qwen3.5:9b<br/>qwen-admin<br/>qwen2-admin"]
+end
 
-    Driver --> GPU
-    GPU -->|Passthrough| DevNVIDIA
-    DevNVIDIA --> OllamaSvc
-    OllamaSvc --> Models
+Driver --> GPU
+GPU -->|Passthrough| DevNVIDIA
+DevNVIDIA --> OllamaSvc
+OllamaSvc --> Models
 
-    subgraph Clientes
-        Cline[Cline<br/>VS Code Extension]
-        Continue[Continue<br/>VS Code Extension]
-        N8N[n8n<br/>LXC 103]
-    end
+subgraph Clientes
+Cline["Cline<br/>VS Code Extension"]
+Continue["Continue<br/>VS Code Extension"]
+N8N["n8n<br/>LXC 103"]
+end
 
-    OllamaSvc -->|HTTP API :11434| Cline
-    OllamaSvc -->|HTTP API :11434| Continue
-    OllamaSvc -->|HTTP API :11434| N8N
+OllamaSvc -->|HTTP API :11434| Cline
+OllamaSvc -->|HTTP API :11434| Continue
+OllamaSvc -->|HTTP API :11434| N8N
 
-    style GPU fill:#f9a825,stroke:#f57f17,color:#000
-    style OllamaSvc fill:#4caf50,stroke:#2e7d32,color:#fff
+style GPU fill:#f9a825,stroke:#f57f17,color:#000
+style OllamaSvc fill:#4caf50,stroke:#2e7d32,color:#fff
 ```
 
-### 12.1 Container 102 – Backend de Processamento (Ollama)
+### 1.1 Container 102 – Backend de Processamento (Ollama)
 
 |Item|Detalhe|
 |---|---|
@@ -69,7 +69,7 @@ graph TB
 - **Script de atalho:** Criado script `/usr/bin/qwen` que executa `ollama run qwen2.5-coder:latest` com um único comando.
 
 
-### 12.2 Otimizações de Performance (Abril/2026)
+### 1.2 Otimizações de Performance (Abril/2026)
 
 #### Variáveis de Ambiente do Ollama (`/etc/systemd/system/ollama.service`)
 
@@ -87,7 +87,7 @@ graph TB
 
 > ℹ️ Configuração persistente em `/etc/sysctl.conf` — sobrevive a reinicializações.
 
-### 12.3 Criação de Modelfiles para Qwen 2.5 e 3.5
+### 1.3 Criação de Modelfiles para Qwen 2.5 e 3.5
 
 Os **Modelfiles** permitem customizar o comportamento padrão dos modelos, definindo parâmetros como contexto, temperatura e um prompt de sistema específico para tarefas administrativas. Abaixo estão as configurações utilizadas no ambiente.
 

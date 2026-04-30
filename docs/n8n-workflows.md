@@ -4,7 +4,7 @@
 
 ---
 
-## 15. Container n8n para Orquestração de Workflows IA
+## 1. Container n8n para Orquestração de Workflows IA
 
 > Adicionado em Abril/2026 – baseado no LXC 103
 
@@ -25,11 +25,11 @@ sequenceDiagram
     Ollama2->>File: Documentação técnica<br/>em markdown
 ```
 
-### 15.1 Visão Geral
+### 1.1 Visão Geral
 
 O **n8n** é uma ferramenta de automação de workflows (low-code) que permite conectar diferentes serviços e APIs. Neste homelab, ele é usado para orquestrar interações entre os LLMs locais (Ollama) e outras fontes de dados, além de coordenar ações no terminal e documentar resultados em tempo real.
 
-### 15.2 Especificações do Container
+### 1.2 Especificações do Container
 
 |Item|Valor|
 |---|---|
@@ -42,7 +42,7 @@ O **n8n** é uma ferramenta de automação de workflows (low-code) que permite c
 |**Storage**|nvme128:20G|
 |**Acesso Web**|`http://<N8N_IP>:5678`|
 
-### 15.3 Stack Tecnológica (dentro do LXC)
+### 1.3 Stack Tecnológica (dentro do LXC)
 
 |Componente|Versão|Observação|
 |---|---|---|
@@ -51,7 +51,7 @@ O **n8n** é uma ferramenta de automação de workflows (low-code) que permite c
 |n8n|2.17.7|Imagem oficial `n8nio/n8n`|
 |Armazenamento persistente|Volume Docker `n8n_data`|Localizado no storage nvme128|
 
-### 15.4 Integração com o Ecossistema
+### 1.4 Integração com o Ecossistema
 
 - **Ollama local:** O n8n chama a API do container `ollama` (`<OLLAMA_IP>:11434`) usando nós HTTP Request. Pode usar qualquer modelo disponível (Qwen2.5-Coder, Qwen3.5:9b, ou os customizados `qwen-admin`/`qwen2-admin`).
 
@@ -60,7 +60,7 @@ O **n8n** é uma ferramenta de automação de workflows (low-code) que permite c
 - **Segurança:** Como o n8n é acessível apenas na rede local (e via Tailscale), a variável `N8N_SECURE_COOKIE=false` foi configurada para permitir acesso HTTP sem certificado TLS.
 
 
-### 15.5 Exemplo de Uso (Workflow Multi‑agente)
+### 1.5 Exemplo de Uso (Workflow Multi‑agente)
 
 Um workflow típico que implementa o conceito de "IA age no terminal enquanto outra documenta" pode ser estruturado assim:
 
@@ -77,7 +77,7 @@ Um workflow típico que implementa o conceito de "IA age no terminal enquanto ou
 
 > ℹ️ O n8n não acelera nem desacelera a inferência dos modelos – a performance é sempre limitada pela GPU RTX 3060 do LXC 102. O ganho está na automação e orquestração.
 
-### 15.6 Comandos Úteis (a partir do host Proxmox)
+### 1.6 Comandos Úteis (a partir do host Proxmox)
 
 |Ação|Comando|
 |---|---|

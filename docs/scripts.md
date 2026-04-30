@@ -4,9 +4,9 @@
 
 ---
 
-## 10. Scripts
+## 1. Scripts
 
-### 10.1 monitor.sh – Telemetria do Servidor
+### 1.1 monitor.sh – Telemetria do Servidor
 
 |Item|Detalhe|
 |---|---|

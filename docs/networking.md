@@ -4,7 +4,7 @@
 
 ---
 
-## 6. VPN de Malha (Tailscale)
+## 1. VPN de Malha (Tailscale)
 
 ### Diagrama da Rede Tailscale
 

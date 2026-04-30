@@ -4,7 +4,7 @@
 
 ---
 
-## 9. Monitoramento de Infraestrutura (Grafana + Prometheus)
+## 1. Monitoramento de Infraestrutura (Grafana + Prometheus)
 
 ### Diagrama do Stack de Monitoramento
 
