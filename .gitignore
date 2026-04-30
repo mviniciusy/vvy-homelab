@@ -1,0 +1,22 @@
+# Arquivo original com dados sensíveis (NÃO versionar)
+PROXMOX_VVY.md
+
+# Logs
+*.log
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Editor files
+*.swp
+*.swo
+*~
+.vscode/
+
+# SSH keys (nunca commit keys)
+*.pem
+id_rsa
+id_rsa.pub
+id_ed25519_github
+id_ed25519_github.pub
