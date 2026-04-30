@@ -93,12 +93,6 @@ graph TB
 
 ---
 
-## ⚠️ Sobre Dados Sensíveis
-
-Todos os IPs, UUIDs, MAC addresses e credenciais foram substituídos por placeholders (ex.: `<HOST_IP>`, `<DB_USER>`) para proteção do servidor. Consulte o arquivo original `PROXMOX_VVY.md` (não versionado) para os valores reais.
-
----
-
 ## 📄 Licença
 
 Este projeto está licenciado sob a [MIT License](LICENSE).
