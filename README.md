@@ -90,6 +90,7 @@ graph TB
 | Script | Descrição |
 |---|---|
 | [`scripts/monitor.sh`](scripts/monitor.sh) | Telemetria do servidor — temperatura CPU, RAM e load average |
+| [`scripts/scripts-server-freeze/`](scripts/scripts-server-freeze/) | Kit de diagnóstico de travamento — watchdog, diagnóstico pós-reboot e instalador |
 
 ---
 
