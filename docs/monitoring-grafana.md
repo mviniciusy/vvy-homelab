@@ -33,7 +33,7 @@ graph LR
 
 ### URLs de Acesso
 
-- **Grafana:** `http://<GRAFANA_IP>:3000` (usuário: `<GRAFANA_ADMIN_USER>`)
+- **Grafana:** `http://<GRAFANA_IP>:3000` (usuário: `admin`)
 
 - **Prometheus UI:** `http://<GRAFANA_IP>:9090`
 

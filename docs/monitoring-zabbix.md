@@ -8,11 +8,11 @@
 
 - **URL:** `http://<ZABBIX_IP>/zabbix`
 
-- **Usuário padrão:** `<ZABBIX_ADMIN_USER>`
+- **Usuário padrão:** `Admin`
 
 - **Versão:** Zabbix 7.2.15
 
-- **Banco de dados:** MariaDB – usuário: `<DB_USER>` – banco: `<DB_NAME>`
+- **Banco de dados:** MariaDB – usuário: `zabbix` – banco: `zabbix`
 
 
 ### Hosts Monitorados
