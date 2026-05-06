@@ -11,8 +11,9 @@ scripts-server-freeze/
 │   └── server-freeze-diagnosis.md     # Plano detalhado de diagnóstico (5 fases)
 └── bash/
     ├── install.sh                     # Instalador completo (executar primeiro)
-    ├── server-watchdog.sh             # Monitoramento a cada 1 min (via cron)
-    └── post-reboot-diagnosis.sh       # Diagnóstico após reboot (executar após travamento)
+    ├── server-watchdog.sh             # Monitoramento a cada 1 min (via cron) — inclui GPU
+    ├── post-reboot-diagnosis.sh       # Diagnóstico após reboot (executar após travamento)
+    └── nvidia-fan-control.sh          # Controle de fans GPU RTX 3060 (fixado em 70%)
 ```
 
 ## Instalação Rápida
