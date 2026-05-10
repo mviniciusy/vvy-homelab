@@ -1,6 +1,6 @@
 # 🔍 Server Freeze Diagnosis - Kit de Diagnóstico de Travamento
 
-Kit de ferramentas para diagnosticar travamentos intermitentes em servidores Linux onde o sistema congela completamente (nem SSH responde) e só volta com hard reboot.
+Kit de ferramentas para diagnosticar e recuperar automaticamente de travamentos intermitentes em servidores Linux onde o sistema congela completamente (nem SSH responde).
 
 ## Estrutura
 
@@ -13,16 +13,24 @@ scripts-server-freeze/
     ├── install.sh                     # Instalador completo (executar primeiro)
     ├── server-watchdog.sh             # Monitoramento a cada 1 min (via cron) — inclui GPU
     ├── post-reboot-diagnosis.sh       # Diagnóstico após reboot (executar após travamento)
+    ├── heartbeat-watchdog.sh          # Heartbeat de reboot automático (softdog + SysRq)
     └── nvidia-fan-control.sh          # Controle de fans GPU RTX 3060 (fixado em 70%)
 ```
+
+## Scripts em Uso no Servidor
+
+| Script | Localização no servidor | Função |
+|--------|------------------------|--------|
+| `server-watchdog.sh` | `/usr/local/bin/server-watchdog.sh` | Cron a cada 1 min — registra memória, CPU, disco, rede, GPU |
+| `post-reboot-diagnosis.sh` | `/usr/local/bin/post-reboot-diagnosis.sh` | Diagnóstico completo após reboot |
+| `heartbeat-watchdog.sh` | `/usr/local/bin/heartbeat-watchdog.sh` | Serviço systemd — ping no softdog a cada 10s, reboot automático se travar |
+| `nvidia-fan-control.sh` | `/usr/local/bin/nvidia-fan-control.sh` | Serviço systemd — fixa fans da RTX 3060 em 70% |
+| `install.sh` | (usado apenas na instalação) | Instala todos os componentes acima |
 
 ## Instalação Rápida
 
 ```bash
-# 1. Copiar os scripts para o servidor (scp, git clone, etc.)
-scp -r scripts-server-freeze/ root@seu-servidor:/root/scripts-server-freeze/
-
-# 2. No servidor, executar o instalador como root
+# No servidor, executar o instalador como root
 cd /root/scripts-server-freeze
 sudo bash bash/install.sh
 ```
@@ -32,86 +40,61 @@ O instalador faz tudo automaticamente:
 - ✅ Configura swap se não existir (2GB por padrão)
 - ✅ Configura persistência de logs (kern.log + journald)
 - ✅ Habilita Magic SysRq para emergências
-- ✅ Instala watchdog de hardware se disponível (compatível com Proxmox VE)
 - ✅ Instala ferramentas de diagnóstico (sysstat, smartmontools, memtester)
 - ✅ Copia script de diagnóstico pós-reboot
 
-### Instalação Parcial
-
+**Após install.sh, instalar também o heartbeat-watchdog:**
 ```bash
-# Apenas configurar swap
-sudo bash bash/install.sh --swap-only
-
-# Apenas instalar watchdog de monitoramento
-sudo bash bash/install.sh --watchdog-only
+sudo bash /usr/local/bin/heartbeat-watchdog.sh --install
 ```
+
+## Reboot Automático (heartbeat-watchdog)
+
+O `heartbeat-watchdog.sh` resolve o problema do servidor ficar congelado por horas:
+
+```
+Sistema rodando → heartbeat ping /dev/watchdog a cada 10s
+     ↓
+Sistema trava → heartbeat para de pingar
+     ↓
+Softdog (kernel) → timeout de 60s sem ping
+     ↓
+Kernel reinicia automaticamente
+```
+
+**Configuração do softdog:**
+- `nowayout=1` — mesmo que o processo morra, o watchdog não é desarmado
+- `soft_noboot=0` — o softdog REINICIA a máquina (não apenas loga)
+- `soft_active_on_boot=1` — ativa automaticamente no boot
+- `soft_margin=60` — timeout de 60 segundos
+
+**Proteções extras no heartbeat:**
+- Se load average > 200 → forçar reboot (SysRq)
+- Se GPU temp > 95°C → forçar reboot (SysRq)
+- Se não consegue abrir `/dev/watchdog` → usa mecanismo alternativo (SysRq)
+
+**IMPORTANTE:** O `watchdog-mux` do Proxmox HA foi mascarado porque:
+1. Não há HA configurado no servidor
+2. Ele ocupava `/dev/watchdog` com `nowayout=0` (não reiniciava)
+3. Os serviços `pve-ha-lrm` e `pve-ha-crm` também foram mascarados
 
 ## Após um Travamento
 
-Quando o servidor travar e você fizer o hard reboot, execute **imediatamente**:
+Quando o servidor travar, o heartbeat deve reiniciá-lo em ~60 segundos. Após o reboot, execute:
 
 ```bash
 sudo /usr/local/bin/post-reboot-diagnosis.sh
 ```
 
-Opcionalmente, salve a saída em arquivo para análise posterior:
-
-```bash
-sudo /usr/local/bin/post-reboot-diagnosis.sh > diagnostico-$(date +%Y%m%d-%H%M%S).txt 2>&1
-```
-
-## O que cada script faz
-
-### `bash/server-watchdog.sh` — Monitoramento Preventivo
-
-Registrado via cron a cada 1 minuto, salva em `/var/log/watchdog/server-state.log`:
-- Uso de memória e swap
-- Load average
-- Top 10 processos por CPU e memória
-- Disk I/O
-- Espaço em disco e inodes
-- Conexões de rede
-- Processos zombie
-- Mensagens críticas do kernel
-- Evidências de OOM Killer
-
-Se o servidor travar, os **últimos registros** antes do travamento mostram o que estava acontecendo.
-
-### `bash/post-reboot-diagnosis.sh` — Diagnóstico Pós-Reboot
-
-Executado após o servidor voltar, verifica:
-1. Evidências de OOM Killer (falta de RAM)
-2. Kernel panic ou erros de kernel
-3. Estado de memória e swap
-4. Espaço em disco e inodes
-5. Erros de filesystem
-6. Processos pesados (CPU/memória)
-7. Load average
-8. Últimos logs do journal
-9. Logs do watchdog (se instalado)
-10. Hardware (SMART dos discos, erros ECC)
-
-Gera um resumo com ações recomendadas.
-
-### `bash/install.sh` — Instalador
-
-Configura tudo automaticamente. Veja [Instalação Rápida](#instalação-rápida).
-
-### `docs/server-freeze-diagnosis.md` — Plano de Diagnóstico
-
-Documento completo com 5 fases de diagnóstico, causas prováveis, fluxograma de decisão e checklist de execução.
-
 ## Causas Mais Comuns
 
 | Causa | Sintoma nos Logs | Solução |
 |-------|-----------------|---------|
-| Falta de RAM | OOM Killer nos logs | Adicionar swap, aumentar RAM, corrigir vazamento de memória |
+| GPU superaquecendo | Fans paradas, temp alta no watchdog | Corrigir nvidia-fan-control.sh (fans em 70%) |
+| Falta de RAM | OOM Killer nos logs | Adicionar swap, aumentar RAM |
 | CPU 100% | Load average alto no watchdog | Identificar e corrigir processo descontrolado |
 | Disco cheio | df mostra 100% | Limpar disco, rotacionar logs |
-| Inodes esgotados | df -i mostra 100% | Remover arquivos pequenos desnecessários |
 | Kernel panic | Stack trace no kern.log | Atualizar kernel ou driver com bug |
-| Disco com I/O saturado | iowait alto no watchdog | Verificar saúde do disco (SMART), otimizar I/O |
-| Hardware defeituoso | Erros ECC, bad sectors | Substituir componente |
 
 ## Compatibilidade
 
@@ -122,7 +105,7 @@ Documento completo com 5 fases de diagnóstico, causas prováveis, fluxograma de
 
 ## Em Caso de Emergência (Servidor Travado)
 
-Se tiver acesso ao console (IPMI/iLO/KVM/Proxmox GUI), use Magic SysRq **antes** do hard reboot:
+Se tiver acesso ao console do Proxmox (GUI web), use Magic SysRq **antes** do hard reboot:
 
 ```
 Alt+SysRq+t → Dump de tarefas (mostra o que está travado)
@@ -132,14 +115,17 @@ Alt+SysRq+u → Remontar discos como read-only
 Alt+SysRq+b → Reboot seguro
 ```
 
-Isso preserva evidências e evita corrupção de filesystem.
-
 ## Arquivos Importantes no Servidor
 
 | Arquivo | Descrição |
 |---------|-----------|
 | `/var/log/watchdog/server-state.log` | Logs do watchdog (estado a cada 1 min) |
+| `/var/log/watchdog/heartbeat.log` | Logs do heartbeat watchdog |
 | `/var/log/kern.log` | Logs de kernel persistentes |
 | `/var/log/journal/` | Logs do systemd journal (persistente) |
 | `/usr/local/bin/server-watchdog.sh` | Script de monitoramento |
 | `/usr/local/bin/post-reboot-diagnosis.sh` | Script de diagnóstico pós-reboot |
+| `/usr/local/bin/heartbeat-watchdog.sh` | Heartbeat de reboot automático |
+| `/usr/local/bin/nvidia-fan-control.sh` | Controle de fans da GPU |
+| `/etc/modprobe.d/softdog.conf` | Configuração do softdog (nowayout=1) |
+| `/etc/modules-load.d/softdog.conf` | Carregamento automático do softdog |
