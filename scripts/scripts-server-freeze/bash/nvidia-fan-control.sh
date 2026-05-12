@@ -5,6 +5,10 @@
 # Fixa as fans em 70% para evitar superaquecimento e travamento do servidor.
 # Executado pelo nvidia-fancontrol.service após o Xorg headless iniciar.
 #
+# IMPORTANTE: O nvidia-fancontrol.service deve usar Restart=always (não
+# Restart=on-failure), pois o Xorg pode encerrar com exit code 0 ao perder
+# as telas DRM, e o on-failure NÃO reinicia nesse caso.
+#
 # Atualizado em: Maio/2026 - Fans fixadas em 70% (antes 100%)
 # ============================================================================
 

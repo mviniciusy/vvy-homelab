@@ -42,6 +42,7 @@ O instalador faz tudo automaticamente:
 - ✅ Habilita Magic SysRq para emergências
 - ✅ Instala ferramentas de diagnóstico (sysstat, smartmontools, memtester)
 - ✅ Copia script de diagnóstico pós-reboot
+- ✅ Instala controle de fans NVIDIA (Xorg headless + nvidia-settings, fans a 70%)
 
 **Após install.sh, instalar também o heartbeat-watchdog:**
 ```bash
@@ -77,6 +78,12 @@ Kernel reinicia automaticamente
 1. Não há HA configurado no servidor
 2. Ele ocupava `/dev/watchdog` com `nowayout=0` (não reiniciava)
 3. Os serviços `pve-ha-lrm` e `pve-ha-crm` também foram mascarados
+
+## Controle de Fans NVIDIA (nvidia-fancontrol)
+
+O `nvidia-fancontrol.service` roda um Xorg headless para controlar as fans da GPU via `nvidia-settings`. As fans são fixadas em 70% para evitar superaquecimento.
+
+> ⚠️ **O serviço DEVE usar `Restart=always`** (não `Restart=on-failure`). O Xorg pode encerrar com exit code 0 ao perder as telas DRM (ex: GPU reconfigurada pelo driver), e o `on-failure` NÃO reinicia nesse caso — as fans voltam a 0% e a GPU superaquece.
 
 ## Após um Travamento
 
