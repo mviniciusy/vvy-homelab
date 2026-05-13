@@ -69,6 +69,12 @@ Kernel reinicia automaticamente
 - `soft_active_on_boot=1` — ativa automaticamente no boot
 - `soft_margin=60` — timeout de 60 segundos
 
+> ⚠️ **CRÍTICO — softdog é BUILT-IN no kernel Proxmox:** O softdog é compilado como built-in (`CONFIG_SOFT_WATCHDOG=y`), não como módulo. Isso significa que `/etc/modprobe.d/softdog.conf` e `/etc/modules-load.d/softdog.conf` **NÃO têm efeito**. Os parâmetros DEVEM ser passados via kernel cmdline no GRUB. Adicione ao `/etc/default/grub` na variável `GRUB_CMDLINE_LINUX_DEFAULT`:
+> ```
+> softdog.nowayout=1 softdog.soft_noboot=0 softdog.soft_active_on_boot=1 softdog.soft_margin=60
+> ```
+> Depois execute `update-grub` e reinicie o servidor. Verifique com `cat /proc/cmdline | grep softdog` após o reboot.
+
 **Proteções extras no heartbeat:**
 - Se load average > 200 → forçar reboot (SysRq)
 - Se GPU temp > 95°C → forçar reboot (SysRq)
@@ -98,10 +104,12 @@ sudo /usr/local/bin/post-reboot-diagnosis.sh
 | Causa | Sintoma nos Logs | Solução |
 |-------|-----------------|---------|
 | GPU superaquecendo | Fans paradas, temp alta no watchdog | Corrigir nvidia-fan-control.sh (fans em 70%) |
+| Driver NVIDIA instável | Firmware gsp error, GPU idle mas trava | Manter driver atualizado, monitorar firmware errors |
 | Falta de RAM | OOM Killer nos logs | Adicionar swap, aumentar RAM |
 | CPU 100% | Load average alto no watchdog | Identificar e corrigir processo descontrolado |
 | Disco cheio | df mostra 100% | Limpar disco, rotacionar logs |
 | Kernel panic | Stack trace no kern.log | Atualizar kernel ou driver com bug |
+| Softdog sem nowayout | Travamento sem reboot automático | Configurar via GRUB cmdline (não modprobe.d) |
 
 ## Compatibilidade
 
@@ -134,5 +142,6 @@ Alt+SysRq+b → Reboot seguro
 | `/usr/local/bin/post-reboot-diagnosis.sh` | Script de diagnóstico pós-reboot |
 | `/usr/local/bin/heartbeat-watchdog.sh` | Heartbeat de reboot automático |
 | `/usr/local/bin/nvidia-fan-control.sh` | Controle de fans da GPU |
-| `/etc/modprobe.d/softdog.conf` | Configuração do softdog (nowayout=1) |
-| `/etc/modules-load.d/softdog.conf` | Carregamento automático do softdog |
+| `/etc/default/grub` | ⚠️ Configuração REAL do softdog (kernel cmdline) |
+| `/etc/modprobe.d/softdog.conf` | ⚠️ OBSOLETO — softdog é built-in, não módulo |
+| `/etc/modules-load.d/softdog.conf` | ⚠️ OBSOLETO — softdog é built-in, não módulo |
