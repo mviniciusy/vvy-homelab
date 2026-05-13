@@ -10,7 +10,13 @@
 
 ### 1.1 Visão Geral
 
-O **Hermes Agent** é um assistente de IA com capacidades de tool-calling (chamada de ferramentas) e integração com plataformas de mensageria (WhatsApp, Slack). Ele roda como um gateway de mensagens no container, permitindo interação com modelos de IA via canais de chat. O serviço principal é o `hermes-gateway.service`, que gerencia a comunicação entre as plataformas de mensageria e o agente de IA.
+O **Hermes Agent** é um assistente de IA com capacidades de tool-calling (chamada de ferramentas) e integração com plataformas de mensageria (WhatsApp, Slack). Ele roda como um gateway de mensagens no container, permitindo interação com modelos de IA via canais de chat.
+
+O serviço principal agora é o `hermes-dashboard.service`, que disponibiliza o painel de controle do Hermes na porta 9119. O acesso via Windows é feito através de túnel SSH na porta 9119:
+
+```bash
+ssh -L 9119:localhost:9119 root@<HERMES_IP> -N
+```
 
 ### 1.2 Especificações do Container
 
@@ -38,19 +44,19 @@ O **Hermes Agent** é um assistente de IA com capacidades de tool-calling (chama
 |Postfix|via systemd|MTA para envio de e-mails|
 |SSH|OpenSSH|Acesso remoto ao container|
 
-### 1.4 Serviço systemd — hermes-gateway
+### 1.4 Serviço principal — hermes-dashboard
 
-O serviço `hermes-gateway.service` é o processo principal do container:
+O serviço principal do container agora é o `hermes-dashboard.service`, que roda na porta 9119:
 
 ```ini
 [Unit]
-Description=Hermes Agent Gateway - Messaging Platform Integration
+Description=Hermes Agent Dashboard - Web Interface
 After=network-online.target
 
 [Service]
 Type=simple
 User=root
-ExecStart=/usr/local/lib/hermes-agent/venv/bin/python -m hermes_cli.main gateway run --replace
+ExecStart=/usr/local/bin/hermes dashboard
 WorkingDirectory=/usr/local/lib/hermes-agent
 Restart=always
 RestartSec=60
@@ -59,10 +65,9 @@ RestartSec=60
 WantedBy=multi-user.target
 ```
 
-**Características:**
+**Características do Novo Serviço:**
 - `Restart=always` — reinicia automaticamente em caso de falha
 - `RestartSec=60` — espera 60s entre tentativas de reinício
-- `KillMode=mixed` — envia SIGTERM ao processo principal
 
 ### 1.5 Configuração do Hermes
 
@@ -79,10 +84,11 @@ WantedBy=multi-user.target
 | Ação | Comando |
 |------|---------|
 | Entrar no container | `pct enter 104` |
-| Status do gateway | `pct exec 104 -- systemctl status hermes-gateway` |
-| Logs do gateway | `pct exec 104 -- journalctl -u hermes-gateway -f` |
-| Reiniciar o gateway | `pct exec 104 -- systemctl restart hermes-gateway` |
+| Status do dashboard | `pct exec 104 -- systemctl status hermes-dashboard` |
+| Logs do dashboard | `pct exec 104 -- journalctl -u hermes-dashboard -f` |
+| Reiniciar o dashboard | `pct exec 104 -- systemctl restart hermes-dashboard` |
 | Ver config do Hermes | `pct exec 104 -- cat /root/.hermes/config.yaml` |
+| Testar API local | `pct exec 104 -- curl http://127.0.0.1:9119` |
 | Ver ports em uso | `pct exec 104 -- ss -tlnp` |
 | Uso de disco | `pct exec 104 -- df -h /` |
 | Uso de memória | `pct exec 104 -- free -m` |
