@@ -1,6 +1,6 @@
 # Scripts
 
-> **Versão:** Abril/2026 | **Autor:** Vinícius Souza
+> **Versão:** Maio/2026 | **Autor:** Vinícius Souza
 
 ---
 
@@ -48,3 +48,27 @@ grep '2026-04-18' /root/logs/telemetry.log  # Ver entradas de uma data
 |Correção 13/Mai/2026|`WatchdogSec=60` removido do service — era redundante com softdog e causava loop de crashes (842+ restarts)|
 
 > **IMPORTANTE:** O service file NÃO deve conter `WatchdogSec`. O script bash não envia `sd_notify`. O softdog do kernel já é o mecanismo de reboot automático. `WatchdogSec` do systemd é redundante e destrutivo neste contexto.
+
+### 1.4 healthcheck-vvy.sh – Verificacao de Saude Automatizada
+
+|Item|Detalhe|
+|---|---|
+|Localização|`/root/scripts/healthcheck-vvy.sh` no CT 104 (hermes-agent) + copia em repo `scripts/healthcheck-vvy.sh`|
+|Execução|Cronjob do Hermes Agent a cada 2 horas|
+|Comportamento|Silencioso se tudo OK, alerta se detectar problemas|
+|Verificações|heartbeat restart counter, WatchdogSec regression, nvidia-fancontrol ativo, load average, GPU temperatura, SMART discos, kernel errors (OOM/MCE/hardware), uptime recente|
+
+**Verificações e thresholds:**
+
+|Verificação|Threshold|Nível|
+|---|---|---|
+|heartbeat-watchdog restart counter|> 5|CRÍTICO|
+|WatchdogSec no service file|qualquer ocorrência|CRÍTICO|
+|nvidia-fancontrol.service inativo|qualquer status != active|ALERTA|
+|Load average|> 15|ALERTA|
+|GPU temperatura|> 85°C|ALERTA|
+|SMART disk failure|qualquer FAILED|CRÍTICO|
+|Kernel OOM/MCE/hardware errors|> 0 ocorrências|ALERTA|
+|Uptime < 10 minutos|< 600s|ALERTA (possível travamento)|
+
+> Este script roda dentro do CT 104 (hermes-agent) e faz SSH para o host vvy. O cronjob carrega a skill `proxmox-crash-loop-diagnosis` para sugerir correções caso problemas sejam detectados.

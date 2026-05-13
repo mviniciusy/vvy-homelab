@@ -96,6 +96,7 @@ graph TB
 |---|---|
 | [`scripts/monitor.sh`](scripts/monitor.sh) | Telemetria do servidor - temperatura CPU, RAM e load average |
 | [`scripts/scripts-server-freeze/`](scripts/scripts-server-freeze/) | Kit de diagnostico de travamento - watchdog, diagnostico pos-reboot e instalador |
+| [`scripts/healthcheck-vvy.sh`](scripts/healthcheck-vvy.sh) | Verificacao de saude automatizada do vvy - cronjob Hermes a cada 2h |
 
 ---
 
