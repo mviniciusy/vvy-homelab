@@ -30,6 +30,7 @@ graph TB
             PH[pihole<br/>CT 101 - DNS]
             OL[ollama<br/>CT 102 - GPU]
             N8N[n8n<br/>CT 103 - Workflows IA]
+            HER[hermes-agent<br/>CT 104 - Mensageria IA]
             HB[handbrake<br/>CT 112]
             QB[qbittorrent<br/>CT 120]
             AL[alist-backup<br/>CT 130]
@@ -59,41 +60,45 @@ graph TB
 
     style OL fill:#f9a825,stroke:#f57f17,color:#000
     style N8N fill:#4caf50,stroke:#2e7d32,color:#fff
+    style HER fill:#9c27b0,stroke:#6a1b9a,color:#fff
     style DK fill:#42a5f5,stroke:#1565c0,color:#fff
     style PH fill:#ff9800,stroke:#e65100,color:#fff
 ```
 
 ---
 
-## 📑 Documentação
+## Documentacao
 
-| Documento | Descrição |
+| Documento | Descricao |
 |---|---|
-| [Hardware](docs/hardware.md) | Especificações do servidor (Xeon E5-2470 v2, RAM, SSDs) e do cliente |
-| [Proxmox Setup](docs/proxmox-setup.md) | Virtualização Proxmox 9.1.6, containers LXC e VMs |
+| [Hardware](docs/hardware.md) | Especificacoes do servidor (Xeon E5-2470 v2, RAM, SSDs) e do cliente |
+| [Proxmox Setup](docs/proxmox-setup.md) | Virtualizacao Proxmox 9.1.6, containers LXC e VMs |
 | [Storage](docs/storage.md) | HDs de dados, pontos de montagem e UUIDs |
-| [Networking](docs/networking.md) | VPN Tailscale, nós, subnet router e acesso remoto |
+| [Networking](docs/networking.md) | VPN Tailscale, nos, subnet router e acesso remoto |
 | [Backup](docs/backup.md) | Sistema automatizado Alist + Rclone + TeraBox |
 | [Monitoring - Zabbix](docs/monitoring-zabbix.md) | Zabbix 7.2, hosts monitorados e thresholds |
 | [Monitoring - Grafana](docs/monitoring-grafana.md) | Grafana 12.4 + Prometheus + Node Exporter |
-| [Scripts](docs/scripts.md) | Scripts de telemetria e automação |
-| [Admin Remoto](docs/admin-remote.md) | VS Code Remote SSH e boas práticas |
+| [Scripts](docs/scripts.md) | Scripts de telemetria e automacao |
+| [Admin Remoto](docs/admin-remote.md) | VS Code Remote SSH e boas praticas |
 | [AI - Ollama](docs/ai-ollama.md) | Ollama, GPU passthrough RTX 3060, Modelfiles |
-| [AI - Integração](docs/ai-integration.md) | Cline e Continue (VS Code) conectados ao Ollama |
+| [AI - Integracao](docs/ai-integration.md) | Cline e Continue (VS Code) conectados ao Ollama |
 | [Docker VM](docs/docker-vm.md) | VM Debian 12 com Docker e Portainer |
-| [n8n Workflows](docs/n8n-workflows.md) | Orquestração de workflows IA com n8n |
+| [n8n Workflows](docs/n8n-workflows.md) | Oquestracao de workflows IA com n8n |
+| [Hermes Agent](docs/hermes-agent.md) | Gateway de mensageria IA (WhatsApp, Slack) - CT 104 |
+| [Terraform](docs/terraform-proxmox.md) | Infraestrutura como Codigo - provisionamento Proxmox |
+| [Ansible](docs/ansible-proxmox.md) | Configuracao como Codigo - automacao de tarefas |
 
 ---
 
-## 🔧 Scripts
+## Scripts
 
-| Script | Descrição |
+| Script | Descricao |
 |---|---|
-| [`scripts/monitor.sh`](scripts/monitor.sh) | Telemetria do servidor — temperatura CPU, RAM e load average |
-| [`scripts/scripts-server-freeze/`](scripts/scripts-server-freeze/) | Kit de diagnóstico de travamento — watchdog, diagnóstico pós-reboot e instalador |
+| [`scripts/monitor.sh`](scripts/monitor.sh) | Telemetria do servidor - temperatura CPU, RAM e load average |
+| [`scripts/scripts-server-freeze/`](scripts/scripts-server-freeze/) | Kit de diagnostico de travamento - watchdog, diagnostico pos-reboot e instalador |
 
 ---
 
-## 📄 Licença
+## Licenca
 
-Este projeto está licenciado sob a [MIT License](LICENSE).
+Este projeto esta licenciado sob a [MIT License](LICENSE).
