@@ -24,7 +24,7 @@ tail -f /root/logs/telemetry.log     # Monitorar em tempo real
 grep '2026-04-18' /root/logs/telemetry.log  # Ver entradas de uma data
 ```
 
-> O código-fonte do script está disponível em [`scripts/monitor.sh`](../scripts/monitor.sh).
+> O código-fonte do script está disponível em [`scripts/monitoring/monitor.sh`](../scripts/monitoring/monitor.sh).
 
 ### 1.2 server-watchdog.sh – Monitoramento Preventivo
 
@@ -53,7 +53,7 @@ grep '2026-04-18' /root/logs/telemetry.log  # Ver entradas de uma data
 
 |Item|Detalhe|
 |---|---|
-|Localização|`/root/scripts/healthcheck-vvy.sh` no CT 104 (hermes-agent) + copia em repo `scripts/healthcheck-vvy.sh`|
+|Localização|`/root/scripts/healthcheck-vvy.sh` no CT 104 (hermes-agent) + copia em repo `scripts/monitoring/healthcheck-vvy.sh`|
 |Execução|Cronjob do Hermes Agent a cada 2 horas|
 |Comportamento|Silencioso se tudo OK, alerta se detectar problemas|
 |Verificações|heartbeat restart counter, WatchdogSec regression, nvidia-fancontrol ativo, load average, GPU temperatura, SMART discos, kernel errors (OOM/MCE/hardware), uptime recente|
