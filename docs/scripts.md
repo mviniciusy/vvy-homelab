@@ -53,8 +53,8 @@ grep '2026-04-18' /root/logs/telemetry.log  # Ver entradas de uma data
 
 |Item|Detalhe|
 |---|---|
-|Localização|`/root/scripts/healthcheck-vvy.sh` no CT 104 (hermes-agent) + copia em repo `scripts/monitoring/healthcheck-vvy.sh`|
-|Execução|Cronjob do Hermes Agent a cada 2 horas|
+|Localização|`/root/scripts/healthcheck-vvy.sh` no CT 104 (hermes-agent) + `~/.hermes/scripts/healthcheck-vvy.sh` (copia cronjob) + repo `scripts/monitoring/healthcheck-vvy.sh`|
+|Execução|Cronjob do Hermes Agent a cada 2 horas (no_agent=True, script-only)|
 |Comportamento|Silencioso se tudo OK, alerta se detectar problemas|
 |Verificações|heartbeat restart counter, WatchdogSec regression, nvidia-fancontrol ativo, load average, GPU temperatura, SMART discos, kernel errors (OOM/MCE/hardware), uptime recente|
 
@@ -71,4 +71,4 @@ grep '2026-04-18' /root/logs/telemetry.log  # Ver entradas de uma data
 |Kernel OOM/MCE/hardware errors|> 0 ocorrências|ALERTA|
 |Uptime < 10 minutos|< 600s|ALERTA (possível travamento)|
 
-> Este script roda dentro do CT 104 (hermes-agent) e faz SSH para o host vvy. O cronjob carrega a skill `proxmox-crash-loop-diagnosis` para sugerir correções caso problemas sejam detectados.
+> Este script roda dentro do CT 104 (hermes-agent) e faz SSH para o host vvy. O cronjob usa modo `no_agent=True` (script-only): o stdout do script e entregue diretamente como mensagem, sem chamada ao LLM. Se problemas forem detectados, o usuario pode pedir ao agente para carregar a skill `proxmox-crash-loop-diagnosis` e sugerir correcoes.

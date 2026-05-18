@@ -100,3 +100,28 @@ WantedBy=multi-user.target
 - **Mensageria:** Suporta integração com WhatsApp e Slack via gateway
 
 > ⚠️ O container **não usa Docker** internamente — o Hermes roda diretamente via Python venv e systemd.
+
+
+### 1.8 Cronjobs do Hermes
+
+O Hermes Agent possui um sistema de cronjobs nativo para monitoramento automatizado.
+
+|Cronjob|Schedule|Modo|Script|Descricao|
+|---|---|---|---|---|
+|vvy-healthcheck|A cada 2h|no_agent=True (script-only)|`~/.hermes/scripts/healthcheck-vvy.sh`|Verifica saude do Proxmox: heartbeat, fans, load, GPU, SMART, kernel, uptime. Silencioso se OK, alerta se detectar problemas.|
+
+**Modo no_agent=True:** O script roda diretamente sem chamada ao LLM. O stdout do script e entregue como mensagem no canal configurado. Isso evita rate limits (HTTP 429), saida vazia e alucinacoes do modelo.
+
+**Scripts do cronjob:**
+- Copia de trabalho: `~/.hermes/scripts/healthcheck-vvy.sh` (usado pelo cronjob)
+- Script original: `/root/scripts/healthcheck-vvy.sh`
+- Copia no repo: `scripts/monitoring/healthcheck-vvy.sh`
+
+**Comandos uteis:**
+
+| Acao | Comando |
+|------|---------|
+| Listar cronjobs | `hermes cron list` |
+| Rodar healthcheck manualmente | `hermes cron run vvy-healthcheck` |
+| Ver log do healthcheck | `hermes cron log vvy-healthcheck` |
+
