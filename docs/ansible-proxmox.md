@@ -45,7 +45,7 @@ vvy ansible_host=<HOST_IP>
 [lxc_containers]
 nextcloud ansible_host=<NEXTCLOUD_IP>
 pihole    ansible_host=<PIHOLE_IP>
-ollama    ansible_host=<OLLAMA_IP>
+ollama    ansible_host=192.168.1.102
 n8n       ansible_host=<N8N_IP>
 hermes    ansible_host=<HERMES_IP>
 qbit      ansible_host=<QBITTORRENT_IP>

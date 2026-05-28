@@ -2,7 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Home Lab baseado no **Proxmox VE**, projetado para centralizar serviços de infraestrutura de rede, armazenamento em nuvem privada e execução local de modelos de IA (LLMs via Ollama com GPU passthrough). Atua como núcleo de processamento para tarefas que exigem disponibilidade 24/7, permitindo que o notebook principal seja utilizado apenas para interface de trabalho e criação.
+Home Lab baseado no **Proxmox VE**, projetado para centralizar serviços de infraestrutura de rede, armazenamento em nuvem privada. Atua como núcleo de processamento para tarefas que exigem disponibilidade 24/7, permitindo que o notebook principal seja utilizado apenas para interface de trabalho e criação.
 
 ---
 
@@ -28,8 +28,7 @@ graph TB
         subgraph Containers LXC
             NC[nextcloud<br/>CT 100]
             PH[pihole<br/>CT 101 - DNS]
-            OL[ollama<br/>CT 102 - GPU]
-            N8N[n8n<br/>CT 103 - Workflows IA]
+                       N8N[n8n<br/>CT 103 - Workflows IA]
             HER[hermes-agent<br/>CT 104 - Mensageria IA]
             HB[handbrake<br/>CT 112]
             QB[qbittorrent<br/>CT 120]
@@ -56,10 +55,8 @@ graph TB
     NB -.-> TS
     Phone -.-> TS
     AL -->|Rclone + WebDAV| TeraBox
-    OL -->|GPU RTX 3060| OL
-
-    style OL fill:#f9a825,stroke:#f57f17,color:#000
-    style N8N fill:#4caf50,stroke:#2e7d32,color:#fff
+   
+       style N8N fill:#4caf50,stroke:#2e7d32,color:#fff
     style HER fill:#9c27b0,stroke:#6a1b9a,color:#fff
     style DK fill:#42a5f5,stroke:#1565c0,color:#fff
     style PH fill:#ff9800,stroke:#e65100,color:#fff
@@ -80,8 +77,6 @@ graph TB
 | [Monitoring - Grafana](docs/monitoring-grafana.md) | Grafana 12.4 + Prometheus + Node Exporter |
 | [Scripts](docs/scripts.md) | Scripts de telemetria e automacao |
 | [Admin Remoto](docs/admin-remote.md) | VS Code Remote SSH e boas praticas |
-| [AI - Ollama](docs/ai-ollama.md) | Ollama, GPU passthrough RTX 3060, Modelfiles |
-| [AI - Integracao](docs/ai-integration.md) | Cline e Continue (VS Code) conectados ao Ollama |
 | [Docker VM](docs/docker-vm.md) | VM Debian 12 com Docker e Portainer |
 | [n8n Workflows](docs/n8n-workflows.md) | Oquestracao de workflows IA com n8n |
 | [Hermes Agent](docs/hermes-agent.md) | Gateway de mensageria IA (WhatsApp, Slack) - CT 104 |

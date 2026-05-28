@@ -365,103 +365,7 @@ install_post_reboot() {
 # Instalar controle de fans NVIDIA (GPU com driver proprietário)
 # ---------------------------------------------------------------------------
 
-install_nvidia_fancontrol() {
-	info "Verificando GPU NVIDIA..."
 
-	if ! command -v nvidia-smi &>/dev/null; then
-		warn "nvidia-smi não encontrado. Pulando instalação do fan control."
-		return 0
-	fi
-
-	if ! command -v nvidia-settings &>/dev/null; then
-		warn "nvidia-settings não encontrado. Instalando..."
-		if is_proxmox || [ "$(detect_distro)" = "debian" ]; then
-			DEBIAN_FRONTEND=noninteractive apt-get install -y -qq nvidia-settings 2>/dev/null || warn "Falha ao instalar nvidia-settings"
-		fi
-	fi
-
-	# Copiar script de fan control
-	cp "${SCRIPT_DIR}/nvidia-fan-control.sh" /usr/local/bin/nvidia-fan-control.sh
-	chmod +x /usr/local/bin/nvidia-fan-control.sh
-
-	# Criar configuração do Xorg para headless NVIDIA
-	mkdir -p /etc/X11/xorg.conf.d
-	if [ ! -f /etc/X11/xorg.conf.d/20-nvidia-fan.conf ]; then
-		cat > /etc/X11/xorg.conf.d/20-nvidia-fan.conf <<'XORGEOF'
-Section "ServerLayout"
-    Identifier "Layout0"
-    Screen 0 "Screen0"
-EndSection
-
-Section "Device"
-    Identifier "Device0"
-    Driver "nvidia"
-    Option "AllowEmptyInitialConfiguration" "True"
-    Option "UseDisplayDevice" "None"
-    Option "Coolbits" "4"
-EndSection
-
-Section "Screen"
-    Identifier "Screen0"
-    Device "Device0"
-    Monitor "Monitor0"
-    DefaultDepth 24
-    SubSection "Display"
-        Depth 24
-        Modes "1920x1080"
-    EndSubSection
-EndSection
-
-Section "Monitor"
-    Identifier "Monitor0"
-EndSection
-XORGEOF
-		ok "Configuração Xorg headless criada em /etc/X11/xorg.conf.d/20-nvidia-fan.conf"
-	else
-		ok "Configuração Xorg headless já existe"
-	fi
-
-	# Criar serviço systemd para o Xorg headless + fan control
-	# IMPORTANTE: Restart=always (não on-failure) pois o Xorg pode encerrar
-	# com exit code 0 ao perder telas DRM, e on-failure NÃO reinicia nesse caso.
-	if [ ! -f /etc/systemd/system/nvidia-fancontrol.service ]; then
-		cat > /etc/systemd/system/nvidia-fancontrol.service <<'SVCEOF'
-[Unit]
-Description=NVIDIA fan control headless X server
-After=network.target
-Requires=network.target
-
-[Service]
-Type=simple
-Environment=DISPLAY=:1
-ExecStart=/usr/bin/Xorg -config /etc/X11/xorg.conf.d/20-nvidia-fan.conf :1 -noreset -novtswitch -logfile /var/log/nvidia-fancontrol-xorg.log
-ExecStartPost=/usr/local/bin/nvidia-fan-control.sh
-Restart=always
-RestartSec=10
-StandardOutput=journal
-StandardError=journal
-
-[Install]
-WantedBy=multi-user.target
-SVCEOF
-		systemctl daemon-reload
-		ok "Serviço nvidia-fancontrol.service criado (Restart=always)"
-	else
-		# Garantir que Restart=always está configurado
-		if grep -q "Restart=on-failure" /etc/systemd/system/nvidia-fancontrol.service; then
-			sed -i 's/Restart=on-failure/Restart=always/' /etc/systemd/system/nvidia-fancontrol.service
-			systemctl daemon-reload
-			ok "nvidia-fancontrol.service atualizado: Restart=on-failure → Restart=always"
-		else
-			ok "Serviço nvidia-fancontrol.service já existe"
-		fi
-	fi
-
-	# Habilitar e iniciar o serviço
-	systemctl enable nvidia-fancontrol.service
-	systemctl start nvidia-fancontrol.service
-	ok "Serviço nvidia-fancontrol habilitado e iniciado"
-}
 
 # ---------------------------------------------------------------------------
 # Main
@@ -498,7 +402,6 @@ main() {
 		echo ""
 		install_post_reboot
 		echo ""
-		install_nvidia_fancontrol
 		;;
 	*)
 		echo "Uso: $0 [--swap-only|--watchdog-only|all]"

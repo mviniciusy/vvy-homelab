@@ -19,8 +19,7 @@ graph TB
 
     subgraph Rede Local 192.168.1.0/24
         VVV --> |Subnet Router| NEXTCLOUD[nextcloud]
-        VVV --> |Subnet Router| OLLAMA[ollama]
-        VVV --> |Subnet Router| N8N[n8n]
+               VVV --> |Subnet Router| N8N[n8n]
         VVV --> |Subnet Router| HERMES[hermes-agent]
         VVV --> |Subnet Router| HANDBRAKE[handbrake]
         VVV --> |Subnet Router| QBIT[qbittorrent]
@@ -61,7 +60,6 @@ graph TB
 |---|---|---|
 |nextcloud (100)|`http://<NEXTCLOUD_IP>`|Subnet Router|
 |pihole (101)|`http://<PIHOLE_IP>/admin`|Subnet + nó próprio|
-|ollama (102)|`http://<OLLAMA_IP>:11434`|Subnet Router|
 |n8n (103)|`http://<N8N_IP>:5678`|Subnet Router|
 |hermes-agent (104)|`<HERMES_IP>`|Subnet Router|
 |handbrake (112)|`http://<HANDBRAKE_IP>:5800`|Subnet Router|

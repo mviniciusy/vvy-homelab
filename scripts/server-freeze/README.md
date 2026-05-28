@@ -11,7 +11,7 @@ scripts-server-freeze/
 │   └── server-freeze-diagnosis.md     # Plano detalhado de diagnóstico (5 fases)
 └── bash/
     ├── install.sh                     # Instalador completo (executar primeiro)
-    ├── server-watchdog.sh             # Monitoramento a cada 1 min (via cron) — inclui GPU
+    ├── server-watchdog.sh             # Monitoramento a cada 1 min (via cron)
     ├── post-reboot-diagnosis.sh       # Diagnóstico após reboot (executar após travamento)
     ├── heartbeat-watchdog.sh          # Heartbeat de reboot automático (softdog + SysRq)
     └── nvidia-fan-control.sh          # Controle de fans GPU RTX 3060 (fixado em 70%)
@@ -21,10 +21,9 @@ scripts-server-freeze/
 
 | Script | Localização no servidor | Função |
 |--------|------------------------|--------|
-| `server-watchdog.sh` | `/usr/local/bin/server-watchdog.sh` | Cron a cada 1 min — registra memória, CPU, disco, rede, GPU |
+| `server-watchdog.sh` | `/usr/local/bin/server-watchdog.sh` | Cron a cada 1 min — registra memória, CPU, disco, rede |
 | `post-reboot-diagnosis.sh` | `/usr/local/bin/post-reboot-diagnosis.sh` | Diagnóstico completo após reboot |
 | `heartbeat-watchdog.sh` | `/usr/local/bin/heartbeat-watchdog.sh` | Serviço systemd — ping no softdog a cada 10s, reboot automático se travar |
-| `nvidia-fan-control.sh` | `/usr/local/bin/nvidia-fan-control.sh` | Serviço systemd — fixa fans da RTX 3060 em 70% |
 | `install.sh` | (usado apenas na instalação) | Instala todos os componentes acima |
 
 ## Instalação Rápida
@@ -42,7 +41,6 @@ O instalador faz tudo automaticamente:
 - ✅ Habilita Magic SysRq para emergências
 - ✅ Instala ferramentas de diagnóstico (sysstat, smartmontools, memtester)
 - ✅ Copia script de diagnóstico pós-reboot
-- ✅ Instala controle de fans NVIDIA (Xorg headless + nvidia-settings, fans a 70%)
 
 **Após install.sh, instalar também o heartbeat-watchdog:**
 ```bash
@@ -77,19 +75,12 @@ Kernel reinicia automaticamente
 
 **Proteções extras no heartbeat:**
 - Se load average > 200 → forçar reboot (SysRq)
-- Se GPU temp > 95°C → forçar reboot (SysRq)
 - Se não consegue abrir `/dev/watchdog` → usa mecanismo alternativo (SysRq)
 
 **IMPORTANTE:** O `watchdog-mux` do Proxmox HA foi mascarado porque:
 1. Não há HA configurado no servidor
 2. Ele ocupava `/dev/watchdog` com `nowayout=0` (não reiniciava)
 3. Os serviços `pve-ha-lrm` e `pve-ha-crm` também foram mascarados
-
-## Controle de Fans NVIDIA (nvidia-fancontrol)
-
-O `nvidia-fancontrol.service` roda um Xorg headless para controlar as fans da GPU via `nvidia-settings`. As fans são fixadas em 70% para evitar superaquecimento.
-
-> ⚠️ **O serviço DEVE usar `Restart=always`** (não `Restart=on-failure`). O Xorg pode encerrar com exit code 0 ao perder as telas DRM (ex: GPU reconfigurada pelo driver), e o `on-failure` NÃO reinicia nesse caso — as fans voltam a 0% e a GPU superaquece.
 
 ## Após um Travamento
 
@@ -103,8 +94,6 @@ sudo /usr/local/bin/post-reboot-diagnosis.sh
 
 | Causa | Sintoma nos Logs | Solução |
 |-------|-----------------|---------|
-| GPU superaquecendo | Fans paradas, temp alta no watchdog | Corrigir nvidia-fan-control.sh (fans em 70%) |
-| Driver NVIDIA instável | Firmware gsp error, GPU idle mas trava | Manter driver atualizado, monitorar firmware errors |
 | Falta de RAM | OOM Killer nos logs | Adicionar swap, aumentar RAM |
 | CPU 100% | Load average alto no watchdog | Identificar e corrigir processo descontrolado |
 | Disco cheio | df mostra 100% | Limpar disco, rotacionar logs |
@@ -141,7 +130,6 @@ Alt+SysRq+b → Reboot seguro
 | `/usr/local/bin/server-watchdog.sh` | Script de monitoramento |
 | `/usr/local/bin/post-reboot-diagnosis.sh` | Script de diagnóstico pós-reboot |
 | `/usr/local/bin/heartbeat-watchdog.sh` | Heartbeat de reboot automático |
-| `/usr/local/bin/nvidia-fan-control.sh` | Controle de fans da GPU |
 | `/etc/default/grub` | ⚠️ Configuração REAL do softdog (kernel cmdline) |
 | `/etc/modprobe.d/softdog.conf` | ⚠️ OBSOLETO — softdog é built-in, não módulo |
 | `/etc/modules-load.d/softdog.conf` | ⚠️ OBSOLETO — softdog é built-in, não módulo |

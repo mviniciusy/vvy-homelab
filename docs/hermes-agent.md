@@ -95,7 +95,6 @@ WantedBy=multi-user.target
 
 ### 1.7 Integração com o Ecossistema
 
-- **Ollama local:** O Hermes pode se conectar ao Ollama (`<OLLAMA_IP>:11434`) como provider de modelos de IA
 - **Acesso via rede local:** Disponível em `<HERMES_IP>` através da bridge `vmbr0`
 - **Mensageria:** Suporta integração com WhatsApp e Slack via gateway
 
@@ -108,7 +107,7 @@ O Hermes Agent possui um sistema de cronjobs nativo para monitoramento automatiz
 
 |Cronjob|Schedule|Modo|Script|Descricao|
 |---|---|---|---|---|
-|vvy-healthcheck|A cada 2h|no_agent=True (script-only)|`~/.hermes/scripts/healthcheck-vvy.sh`|Verifica saude do Proxmox: heartbeat, fans, load, GPU, SMART, kernel, uptime. Silencioso se OK, alerta se detectar problemas.|
+|vvy-healthcheck|A cada 2h|no_agent=True (script-only)|`~/.hermes/scripts/healthcheck-vvy.sh`|Verifica saude do Proxmox: heartbeat, load, SMART, kernel, uptime. Silencioso se OK, alerta se detectar problemas.|
 
 **Modo no_agent=True:** O script roda diretamente sem chamada ao LLM. O stdout do script e entregue como mensagem no canal configurado. Isso evita rate limits (HTTP 429), saida vazia e alucinacoes do modelo.
 

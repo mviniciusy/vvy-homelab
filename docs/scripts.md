@@ -34,7 +34,7 @@ grep '2026-04-18' /root/logs/telemetry.log  # Ver entradas de uma data
 |Log|`/var/log/watchdog/server-state.log`|
 |Execução|A cada 1 minuto via CronJob|
 |Retenção|Últimos 50.000 registros (rotação automática — aumentado de 10.000 em 13/Mai/2026)|
-|Métricas|Memória/Swap, Load Average, Top CPU/MEM, Disk I/O, Disk Space, Inodes, Network conns, Zombies, GPU NVIDIA|
+|Métricas|Memória/Swap, Load Average, Top CPU/MEM, Disk I/O, Disk Space, Inodes, Network conns, Zombies|
 
 ### 1.3 heartbeat-watchdog.sh – Reboot Automático via Softdog
 
@@ -56,7 +56,7 @@ grep '2026-04-18' /root/logs/telemetry.log  # Ver entradas de uma data
 |Localização|`/root/scripts/healthcheck-vvy.sh` no CT 104 (hermes-agent) + `~/.hermes/scripts/healthcheck-vvy.sh` (copia cronjob) + repo `scripts/monitoring/healthcheck-vvy.sh`|
 |Execução|Cronjob do Hermes Agent a cada 2 horas (no_agent=True, script-only)|
 |Comportamento|Silencioso se tudo OK, alerta se detectar problemas|
-|Verificações|heartbeat restart counter, WatchdogSec regression, nvidia-fancontrol ativo, load average, GPU temperatura, SMART discos, kernel errors (OOM/MCE/hardware), uptime recente|
+|Verificações|heartbeat restart counter, WatchdogSec regression, load average, SMART discos, kernel errors (OOM/MCE/hardware), uptime recente|
 
 **Verificações e thresholds:**
 
@@ -64,9 +64,7 @@ grep '2026-04-18' /root/logs/telemetry.log  # Ver entradas de uma data
 |---|---|---|
 |heartbeat-watchdog restart counter|> 5|CRÍTICO|
 |WatchdogSec no service file|qualquer ocorrência|CRÍTICO|
-|nvidia-fancontrol.service inativo|qualquer status != active|ALERTA|
 |Load average|> 15|ALERTA|
-|GPU temperatura|> 85°C|ALERTA|
 |SMART disk failure|qualquer FAILED|CRÍTICO|
 |Kernel OOM/MCE/hardware errors|> 0 ocorrências|ALERTA|
 |Uptime < 10 minutos|< 600s|ALERTA (possível travamento)|
