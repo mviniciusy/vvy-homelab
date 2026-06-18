@@ -8,7 +8,7 @@
 
 - **IP Host Local:** `<HOST_IP>`
 
-- **Kernel:** `6.17.13-7-pve` (kernel 7.0 removido)
+- **Kernel:** `6.17.13-6-pve` (kernel 7.0 removido)
 
 ### Diagrama da Arquitetura Proxmox
 

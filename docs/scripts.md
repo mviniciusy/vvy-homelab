@@ -45,9 +45,10 @@ grep '2026-04-18' /root/logs/telemetry.log  # Ver entradas de uma data
 |Execução|Serviço systemd contínuo (`heartbeat-watchdog.service`)|
 |Mecanismo|Ping em `/dev/watchdog` (softdog) a cada 10s. Se parar, kernel reboot em 60s|
 |Config GRUB|`softdog.nowayout=1 softdog.soft_noboot=0 softdog.soft_active_on_boot=1 softdog.soft_margin=60`|
+|Correção 18/Jun/2026|`printf 'V'` (magic close) substituído por `printf '1'` (keepalive) — o watchdog era desarmado ao invés de reiniciar o servidor. NMI watchdog (perf) desativado via `/etc/sysctl.d/99-disable-nmi-watchdog.conf`|
 |Correção 13/Mai/2026|`WatchdogSec=60` removido do service — era redundante com softdog e causava loop de crashes (842+ restarts)|
 
-> **IMPORTANTE:** O service file NÃO deve conter `WatchdogSec`. O script bash não envia `sd_notify`. O softdog do kernel já é o mecanismo de reboot automático. `WatchdogSec` do systemd é redundante e destrutivo neste contexto.
+> **IMPORTANTE:** O script deve usar `printf '1'` (ou qualquer caractere exceto `V`) para keepalive. O caractere `V` é o magic close — ele DESARMA o watchdog. O service file NÃO deve conter `WatchdogSec`. O script bash não envia `sd_notify`. O softdog do kernel já é o mecanismo de reboot automático. `WatchdogSec` do systemd é redundante e destrutivo neste contexto.
 
 ### 1.4 healthcheck-vvy.sh – Verificacao de Saude Automatizada
 
