@@ -1,4 +1,4 @@
-# 🔍 Server Freeze Diagnosis - Kit de Diagnóstico de Travamento
+# Server Freeze Diagnosis - Kit de Diagnóstico de Travamento
 
 Kit de ferramentas para diagnosticar e recuperar automaticamente de travamentos intermitentes em servidores Linux onde o sistema congela completamente (nem SSH responde).
 
@@ -23,7 +23,7 @@ scripts-server-freeze/
 |--------|------------------------|--------|
 | `server-watchdog.sh` | `/usr/local/bin/server-watchdog.sh` | Cron a cada 1 min — registra memória, CPU, disco, rede |
 | `post-reboot-diagnosis.sh` | `/usr/local/bin/post-reboot-diagnosis.sh` | Diagnóstico completo após reboot |
-| `heartbeat-watchdog.sh` | `/usr/local/bin/heartbeat-watchdog.sh` | Serviço systemd — ping no softdog a cada 10s, reboot automático se travar |
+| `heartbeat-watchdog.sh` | `/usr/local/bin/heartbeat-watchdog.sh` | Serviço systemd — ping no iTCO_wdt (hardware watchdog) a cada 10s, reboot automático se travar |
 | `install.sh` | (usado apenas na instalação) | Instala todos os componentes acima |
 
 ## Instalação Rápida
@@ -56,26 +56,32 @@ Sistema rodando → heartbeat ping /dev/watchdog a cada 10s
      ↓
 Sistema trava → heartbeat para de pingar
      ↓
-Softdog (kernel) → timeout de 60s sem ping
+iTCO_wdt (hardware) → timeout de 60s sem ping
      ↓
-Kernel reinicia automaticamente
+Hardware reinicia automaticamente (timer independente do kernel)
 ```
 
-**Configuração do softdog:**
+**Dispositivo: iTCO_wdt (Intel TCO Watchdog Timer)**
+- Timer de hardware na ponte Intel Panther Point (chipset C216/HM70)
+- Funciona mesmo em hard freeze — o timer é independente do kernel
 - `nowayout=1` — mesmo que o processo morra, o watchdog não é desarmado
-- `soft_noboot=0` — o softdog REINICIA a máquina (não apenas loga)
-- `soft_active_on_boot=1` — ativa automaticamente no boot
-- `soft_margin=60` — timeout de 60 segundos
+- `heartbeat=60` — timeout de 60 segundos
 
-> ⚠️ **CRÍTICO — softdog é BUILT-IN no kernel Proxmox:** O softdog é compilado como built-in (`CONFIG_SOFT_WATCHDOG=y`), não como módulo. Isso significa que `/etc/modprobe.d/softdog.conf` e `/etc/modules-load.d/softdog.conf` **NÃO têm efeito**. Os parâmetros DEVEM ser passados via kernel cmdline no GRUB. Adicione ao `/etc/default/grub` na variável `GRUB_CMDLINE_LINUX_DEFAULT`:
-> ```
-> softdog.nowayout=1 softdog.soft_noboot=0 softdog.soft_active_on_boot=1 softdog.soft_margin=60
-> ```
-> Depois execute `update-grub` e reinicie o servidor. Verifique com `cat /proc/cmdline | grep softdog` após o reboot.
+**Configuração persistente:**
+- Módulo: `/etc/modules-load.d/iTCO_wdt.conf` (carrega no boot)
+- Parâmetros: `/etc/modprobe.d/iTCO_wdt.conf` (`options iTCO_wdt nowayout=1 heartbeat=60`)
+- Script: `/usr/local/bin/heartbeat-watchdog.sh --daemon` (serviço systemd)
 
-**Proteções extras no heartbeat:**
-- Se load average > 200 → forçar reboot (SysRq)
-- Se não consegue abrir `/dev/watchdog` → usa mecanismo alternativo (SysRq)
+> **Anotação — Migração softdog → iTCO_wdt (21/Jun/2026):**
+> O softdog era um watchdog 100% software — seu timer roda no kernel. Em hard freezes onde o kernel trava, o timer do softdog também congela, impedindo o reboot. O iTCO_wdt tem timer de hardware independente. O servidor ficava "travado mas não desligava" porque o softdog não conseguiu disparar o reboot.
+>
+> Arquivos obsoletos do softdog (NÃO remover, mas são ignorados pelo kernel):
+> - `/etc/modprobe.d/softdog.conf` — softdog é built-in, modprobe não funciona
+> - `/etc/modules-load.d/softdog.conf` — idem
+> - Parâmetros `softdog.*` no GRUB cmdline — ainda presentes mas sem efeito com iTCO_wdt
+
+**NMI watchdog desativado via GRUB:**
+O `nmi_watchdog=0` foi adicionado ao `GRUB_CMDLINE_LINUX_DEFAULT` (não apenas sysctl). O sysctl `/etc/sysctl.d/99-disable-nmi-watchdog.conf` chega tarde demais — o NMI watchdog já consome um PMU counter no boot antes do sysctl ser aplicado.
 
 **IMPORTANTE:** O `watchdog-mux` do Proxmox HA foi mascarado porque:
 1. Não há HA configurado no servidor
@@ -129,7 +135,10 @@ Alt+SysRq+b → Reboot seguro
 | `/var/log/journal/` | Logs do systemd journal (persistente) |
 | `/usr/local/bin/server-watchdog.sh` | Script de monitoramento |
 | `/usr/local/bin/post-reboot-diagnosis.sh` | Script de diagnóstico pós-reboot |
-| `/usr/local/bin/heartbeat-watchdog.sh` | Heartbeat de reboot automático |
-| `/etc/default/grub` | ⚠️ Configuração REAL do softdog (kernel cmdline) |
-| `/etc/modprobe.d/softdog.conf` | ⚠️ OBSOLETO — softdog é built-in, não módulo |
-| `/etc/modules-load.d/softdog.conf` | ⚠️ OBSOLETO — softdog é built-in, não módulo |
+| `/usr/local/bin/heartbeat-watchdog.sh` | Heartbeat de reboot automático (iTCO_wdt) |
+| `/etc/default/grub` | Configuração do kernel cmdline (inclui `nmi_watchdog=0`) |
+| `/etc/modules-load.d/iTCO_wdt.conf` | Carregamento do módulo iTCO_wdt no boot |
+| `/etc/modprobe.d/iTCO_wdt.conf` | Parâmetros do iTCO_wdt (`nowayout=1 heartbeat=60`) |
+| `/etc/sensors.d/nct6779-ignore.conf` | Sensores fantasmas NCT6779 ignorados |
+| `/etc/modprobe.d/softdog.conf` | OBSOLETO — softdog é built-in, não módulo |
+| `/etc/modules-load.d/softdog.conf` | OBSOLETO — softdog é built-in, não módulo |
