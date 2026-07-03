@@ -12,11 +12,14 @@
 
 O **Hermes Agent** é um assistente de IA com capacidades de tool-calling (chamada de ferramentas) e integração com plataformas de mensageria (WhatsApp, Slack). Ele roda como um gateway de mensagens no container, permitindo interação com modelos de IA via canais de chat.
 
-O serviço principal agora é o `hermes-dashboard.service`, que disponibiliza o painel de controle do Hermes na porta 9119. O acesso via Windows é feito através de túnel SSH na porta 9119:
+O serviço principal agora é o `hermes-serve.service`, que disponibiliza a interface web do Hermes com bind em `0.0.0.0:9119` e autenticação Basic Auth. O acesso remoto (Desktop App no Windows) é feito diretamente via Tailscale, sem túnel SSH:
 
 ```bash
-ssh -L 9119:localhost:9119 root@<HERMES_IP> -N
+# Acesso via Tailscale (do Windows ou qualquer nó da tailnet)
+http://<TAILSCALE_HERMES_IP>:9119
 ```
+
+> O Tailscale está instalado **dentro do LXC 104** (IP `<TAILSCALE_HERMES_IP>`), eliminando o hop pelo subnet router do host e o túnel SSH que eram necessários antes.
 
 ### 1.2 Especificações do Container
 
@@ -43,23 +46,28 @@ ssh -L 9119:localhost:9119 root@<HERMES_IP> -N
 |Node.js|`/root/.hermes/node/`|Runtime para ferramentas JS do Hermes|
 |Postfix|via systemd|MTA para envio de e-mails|
 |SSH|OpenSSH|Acesso remoto ao container|
+|Tailscale|`<TAILSCALE_HERMES_IP>`|Nó Tailscale dentro do LXC — acesso remoto direto ao hermes-serve|
 
-### 1.4 Serviço principal — hermes-dashboard
+### 1.4 Serviço principal — hermes-serve (bind 0.0.0.0 + Basic Auth)
 
-O serviço principal do container agora é o `hermes-dashboard.service`, que roda na porta 9119:
+O serviço principal do container agora é o `hermes-serve.service`, que roda na porta 9119 com bind em `0.0.0.0` e autenticação Basic Auth. Ele substituiu o antigo `hermes-dashboard.service` (que bindava em `127.0.0.1` e exigia túnel SSH para acesso remoto).
 
 ```ini
 [Unit]
-Description=Hermes Agent Dashboard - Web Interface
-After=network-online.target
+Description=Hermes Agent Serve (Remote Backend)
+After=network-online.target tailscale.service
+Wants=network-online.target
 
 [Service]
 Type=simple
 User=root
-ExecStart=/usr/local/bin/hermes dashboard
-WorkingDirectory=/usr/local/lib/hermes-agent
+WorkingDirectory=/root
+EnvironmentFile=/root/.hermes/.env
+ExecStart=/usr/local/lib/hermes-agent/venv/bin/hermes serve --host 0.0.0.0 --port 9119 --skip-build
 Restart=always
-RestartSec=60
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
 
 [Install]
 WantedBy=multi-user.target
@@ -67,7 +75,53 @@ WantedBy=multi-user.target
 
 **Características do Novo Serviço:**
 - `Restart=always` — reinicia automaticamente em caso de falha
-- `RestartSec=60` — espera 60s entre tentativas de reinício
+- `RestartSec=5` — espera 5s entre tentativas de reinício
+- `--host 0.0.0.0` — bind em todas as interfaces (acessível via Tailscale, não só loopback)
+- `--skip-build` — pula build do frontend (já buildado)
+- `EnvironmentFile=/root/.hermes/.env` — carrega credenciais e secret do Basic Auth
+- `After=tailscale.service` — garante que o Tailscale suba antes do hermes-serve
+
+**Autenticação Basic Auth (`/root/.hermes/.env` no LXC 104):**
+
+|Variável|Valor|Função|
+|---|---|---|
+|`HERMES_DASHBOARD_BASIC_AUTH_USERNAME`|`admin`|Usuário do Basic Auth|
+|`HERMES_DASHBOARD_BASIC_AUTH_PASSWORD`|`<HERMES_BASIC_AUTH_PASSWORD>`|Senha do Basic Auth|
+|`HERMES_DASHBOARD_BASIC_AUTH_SECRET`|Gerado com `openssl rand -base64 32`|Garante que a sessão OAuth sobrevive a restarts|
+
+> O `hermes serve` com bind público exige auth provider configurado. O Basic Auth protege o WebSocket e a API REST. O `SECRET` garante que a sessão OAuth persiste entre restarts do serviço.
+
+### Topologia de acesso remoto (Desktop App Windows)
+
+```
+Windows (Acer Nitro)                         Proxmox Host (vvy)
+Tailscale: <TAILSCALE_NOTEBOOK_IP>          <--> Tailscale direto no LXC 104 -> <TAILSCALE_HERMES_IP>
+                                                                |
+                                                    hermes-serve: 0.0.0.0:9119 (Basic Auth)
+```
+
+O Desktop App no Windows conecta via Tailscale direto ao LXC 104, sem hop pelo subnet router do host e sem túnel SSH. O fluxo de autenticação é OAuth via Basic Auth (username/password), gerando cookies de sessão.
+
+**Arquivo de conexão do Desktop App (`%APPDATA%\Hermes\connection.json`):**
+
+```json
+{
+  "mode": "remote",
+  "remote": {
+    "authMode": "oauth",
+    "url": "http://<TAILSCALE_HERMES_IP>:9119"
+  }
+}
+```
+
+**Fluxo de conexão:**
+1. Abre Desktop App
+2. Settings -> Gateway -> "Sign in to remote gateway"
+3. Username: `admin` | Password: `<HERMES_BASIC_AUTH_PASSWORD>`
+4. App obtém cookies OAuth -> ticket -> WebSocket autenticado
+5. Sessões aparecem (vêm de `/root/.hermes/state.db` no LXC)
+
+> O antigo `hermes-dashboard.service` (`hermes dashboard`, porta `127.0.0.1:9119`) e o acesso via SSH tunnel (`ssh -L 9119:localhost:9119`) ficaram **obsoletos**. O script `hermes-tunnels.ps1` no Windows também não é mais necessário.
 
 ### 1.5 Configuração do Hermes
 
@@ -84,9 +138,10 @@ WantedBy=multi-user.target
 | Ação | Comando |
 |------|---------|
 | Entrar no container | `pct enter 104` |
-| Status do dashboard | `pct exec 104 -- systemctl status hermes-dashboard` |
-| Logs do dashboard | `pct exec 104 -- journalctl -u hermes-dashboard -f` |
-| Reiniciar o dashboard | `pct exec 104 -- systemctl restart hermes-dashboard` |
+| Status do hermes-serve | `pct exec 104 -- systemctl status hermes-serve` |
+| Logs do hermes-serve | `pct exec 104 -- journalctl -u hermes-serve -f` |
+| Reiniciar o hermes-serve | `pct exec 104 -- systemctl restart hermes-serve` |
+| Verificar Tailscale no LXC | `pct exec 104 -- tailscale status` |
 | Ver config do Hermes | `pct exec 104 -- cat /root/.hermes/config.yaml` |
 | Testar API local | `pct exec 104 -- curl http://127.0.0.1:9119` |
 | Ver ports em uso | `pct exec 104 -- ss -tlnp` |
@@ -96,6 +151,8 @@ WantedBy=multi-user.target
 ### 1.7 Integração com o Ecossistema
 
 - **Acesso via rede local:** Disponível em `<HERMES_IP>` através da bridge `vmbr0`
+- **Acesso via Tailscale:** `http://<TAILSCALE_HERMES_IP>:9119` (Basic Auth) — Tailscale direto no LXC, sem hop pelo subnet router do host
+- **Desktop App (Windows):** Conecta via Tailscale direto ao LXC 104, autenticação OAuth via Basic Auth (admin/<HERMES_BASIC_AUTH_PASSWORD>)
 - **Mensageria:** Suporta integração com WhatsApp e Slack via gateway
 
 > ⚠️ O container **não usa Docker** internamente — o Hermes roda diretamente via Python venv e systemd.

@@ -79,7 +79,7 @@ graph TB
 | [Admin Remoto](docs/admin-remote.md) | VS Code Remote SSH e boas praticas |
 | [Docker VM](docs/docker-vm.md) | VM Debian 12 com Docker e Portainer |
 | [n8n Workflows](docs/n8n-workflows.md) | Oquestracao de workflows IA com n8n |
-| [Hermes Agent](docs/hermes-agent.md) | Gateway de mensageria IA (WhatsApp, Slack) - CT 104 |
+| [Hermes Agent](docs/hermes-agent.md) | Gateway de mensageria IA (WhatsApp, Slack) + backend remoto via Tailscale (Desktop App) - CT 104 |
 | [Terraform](docs/terraform-proxmox.md) | Infraestrutura como Codigo - provisionamento Proxmox |
 | [Ansible](docs/ansible-proxmox.md) | Configuracao como Codigo - automacao de tarefas |
 

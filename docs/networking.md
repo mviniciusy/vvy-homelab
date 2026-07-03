@@ -13,6 +13,7 @@ graph TB
     subgraph Tailnet
         VVV[vvv - Proxmox<br/>TAILSCALE_VVV_IP<br/>Subnet Router]
         PIHOLE[pihole - LXC<br/>TAILSCALE_PIHOLE_IP<br/>DNS Global]
+        HERMES_TS[hermes-agent - LXC 104<br/><TAILSCALE_HERMES_IP><br/>Nó Tailscale próprio]
         NOTEBOOK[notebook<br/>TAILSCALE_NOTEBOOK_IP]
         PHONE[celular<br/>TAILSCALE_PHONE_IP]
     end
@@ -29,6 +30,7 @@ graph TB
     end
 
     NOTEBOOK -.-> |Tailscale| VVV
+    NOTEBOOK -.-> |Tailscale direto| HERMES_TS
     PHONE -.-> |Tailscale| VVV
     PIHOLE -.-> |Override DNS| NOTEBOOK
     PIHOLE -.-> |Override DNS| PHONE
@@ -51,7 +53,8 @@ graph TB
 |---|---|---|---|
 |vvv (Proxmox)|`<TAILSCALE_VVV_IP>`|Servidor principal|Subnet Router ativo – anuncia 192.168.1.0/24|
 |pihole (LXC)|`<TAILSCALE_PIHOLE_IP>`|Container|DNS global da tailnet (Override local DNS)|
-|vinimau (Notebook)|`<TAILSCALE_NOTEBOOK_IP>`|PC cliente|—|
+|hermes-agent (LXC 104)|`<TAILSCALE_HERMES_IP>`|Container|Nó Tailscale direto no LXC — acesso ao hermes-serve sem hop|
+|vinimau (Notebook)|`<TAILSCALE_NOTEBOOK_IP>`|PC cliente|Conecta ao hermes-serve via Tailscale|
 |samsung-sm-s921b|`<TAILSCALE_PHONE_IP>`|Celular|—|
 
 ### Acesso via Tailscale por Container
@@ -61,7 +64,7 @@ graph TB
 |nextcloud (100)|`http://<NEXTCLOUD_IP>`|Subnet Router|
 |pihole (101)|`http://<PIHOLE_IP>/admin`|Subnet + nó próprio|
 |n8n (103)|`http://<N8N_IP>:5678`|Subnet Router|
-|hermes-agent (104)|`<HERMES_IP>`|Subnet Router|
+|hermes-agent (104)|`http://<TAILSCALE_HERMES_IP>:9119`|Nó Tailscale próprio (Basic Auth)|
 |handbrake (112)|`http://<HANDBRAKE_IP>:5800`|Subnet Router|
 |qbittorrent (120)|`http://<QBITTORRENT_IP>:8080`|Subnet Router|
 |alist-backup (130)|`http://<ALIST_IP>:5244`|Subnet Router|
