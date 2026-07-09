@@ -181,3 +181,45 @@ O Hermes Agent possui um sistema de cronjobs nativo para monitoramento automatiz
 | Rodar healthcheck manualmente | `hermes cron run vvy-healthcheck` |
 | Ver log do healthcheck | `hermes cron log vvy-healthcheck` |
 
+### 1.9 Acesso ao Host via Token de API Proxmox
+
+> Adicionado em Julho/2026 — Token de API dedicado para o Hermes Agent (CT 104)
+
+O CT 104 é unprivileged e precisa de acesso ao host vvy para listar CTs/VMs,
+consultar status, executar start/stop e outros comandos administrativos. Para
+evitar elevar o container a privileged, foram configurados **dois caminhos
+complementares**:
+
+**1. Token de API Proxmox (`root@pam!hermes`) — preferencial para consultas**
+
+- Wrapper `pveapi` instalado em `/usr/local/bin/pveapi` (dentro do CT 104)
+- Secret guardado em `/root/.proxmox-api` (0600)
+- Latência: ~22ms por chamada (vs ~1.420ms via SSH ControlMaster)
+
+```bash
+# Sintaxe: pveapi <method> <endpoint>
+pveapi get /version                              # versão do PVE
+pveapi get /nodes                                # nodes
+pveapi get "/cluster/resources?type=vm"          # lista CTs + VMs
+pveapi get /nodes/vvy/status                     # status do node vvy
+pveapi post /nodes/vvy/lxc/103/status/start      # iniciar CT 103
+```
+
+**2. SSH ControlMaster (`ssh vvy`) — shells interativos e comandos sem endpoint**
+
+- `/root/.ssh/config` configurado com ControlMaster auto (socket 10min)
+- Alias: `ssh vvy` = `ssh root@<HOST_IP>`
+
+**Quando usar cada um:**
+
+| Cenário | Método |
+|---|---|
+| Listar, consultar status, métricas, start/stop | API (`pveapi`) |
+| Scripts de automação, watchers, monitoração | API |
+| `pct exec`, `pct enter`, editar `/etc/pve/` direto | SSH (`ssh vvy`) |
+| Operações de arquivo (rsync, cp inter-host) | SSH |
+
+> O Token de API NÃO substitui o SSH — complementa. Para detalhes completos
+> (benchmark, arquivos no container, troca de contexto), veja a Seção 16 do
+> PROXMOX_VVY.md.
+
