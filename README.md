@@ -32,7 +32,6 @@ graph TB
             HER[hermes-agent<br/>CT 104 - Mensageria IA]
             HB[handbrake<br/>CT 112]
             QB[qbittorrent<br/>CT 120]
-            AL[alist-backup<br/>CT 130]
             ZB[zabbix<br/>CT 160]
             GF[grafana<br/>CT 161]
         end
@@ -54,7 +53,6 @@ graph TB
     TS --> |Subnet Router| Router
     NB -.-> TS
     Phone -.-> TS
-    AL -->|Rclone + WebDAV| TeraBox
    
        style N8N fill:#4caf50,stroke:#2e7d32,color:#fff
     style HER fill:#9c27b0,stroke:#6a1b9a,color:#fff
@@ -72,7 +70,7 @@ graph TB
 | [Proxmox Setup](docs/proxmox-setup.md) | Virtualizacao Proxmox 9.1.6, containers LXC e VMs |
 | [Storage](docs/storage.md) | HDs de dados, pontos de montagem e UUIDs |
 | [Networking](docs/networking.md) | VPN Tailscale, nos, subnet router e acesso remoto |
-| [Backup](docs/backup.md) | Sistema automatizado Alist + Rclone + TeraBox |
+| [Backup](docs/backup.md) | Sistema de backup TeraBox (Alist removido, app planejado) |
 | [Monitoring - Zabbix](docs/monitoring-zabbix.md) | Zabbix 7.2, hosts monitorados e thresholds |
 | [Monitoring - Grafana](docs/monitoring-grafana.md) | Grafana 12.4 + Prometheus + Node Exporter |
 | [Scripts](docs/scripts.md) | Scripts de telemetria e automacao |
@@ -93,6 +91,7 @@ graph TB
 | [`scripts/server-freeze/`](scripts/server-freeze/) | Kit de diagnostico de travamento - watchdog, diagnostico pos-reboot e instalador |
 | [`scripts/sync/`](scripts/sync/) | Sincronizacao privado->publico (sync_public.py) |
 | [`scripts/monitoring/healthcheck-vvy.sh`](scripts/monitoring/healthcheck-vvy.sh) | Verificacao de saude automatizada do vvy - cronjob Hermes a cada 2h (no_agent=True, script-only) |
+| [`scripts/server-freeze/bash/mce-collector.sh`](scripts/server-freeze/bash/mce-collector.sh) | Monitoramento MCE/EDAC de memoria — cronjob Hermes a cada 5 min (no_agent, script-only) |
 
 ---
 

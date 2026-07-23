@@ -1,63 +1,38 @@
-# Sistema de Backup Automatizado
+# Sistema de Backup (TeraBox)
 
-> **Versão:** Abril/2026 | **Autor:** Vinícius Souza
+> Atualizado em Jul/2026
 
 ---
 
-## 1. Sistema de Backup Automatizado (Alist + Rclone + TeraBox)
+## Status
 
-### Diagrama do Fluxo de Backup
+O sistema anterior (Alist + Rclone no LXC 130) foi **removido**. O CT 130 foi destruído.
 
-```mermaid
-flowchart LR
-    subgraph Host Proxmox
-        HD1[HD-WD-1TB<br/>/mnt/HD-WD-1TB]
-        HD2[HD-WD500GB<br/>/mnt/pve/HD-WD500GB]
-        HD3[HD-SEA1TB<br/>/mnt/pve/HD-SEA1TB]
-    end
+**Novo sistema planejado:** TeraBox Backup Manager — aplicação Python/FastAPI + Node.js (terabox-api) deployada na VM 200 (Docker).
 
-    subgraph LXC 130 - alist-backup
-        Rclone[Rclone<br/>sync]
-        Alist[Alist<br/>WebDAV :5244]
-        Cron[CronJob<br/>a cada 4 dias 3h]
-    end
+## Capacidade TeraBox
 
-    subgraph Nuvem
-        TeraBox[TeraBox<br/>Premium 2048 GB]
-    end
-
-    HD1 --> Rclone
-    HD2 -.-> |Futuro| Rclone
-    HD3 -.-> |Futuro| Rclone
-    Cron -->|dispara| Rclone
-    Rclone -->|WebDAV| Alist
-    Alist -->|API/cookie| TeraBox
-```
-
-|Componente|Função|
-|---|---|
-|Alist|Conecta ao TeraBox via cookie/API e expõe como WebDAV na porta 5244|
-|Rclone|Realiza o sync entre os HDs locais e o TeraBox via WebDAV do Alist|
-|CronJob|Agendamento automático a cada 4 dias às 3h da manhã – dentro do LXC 130|
-
-**CronJob:** `0 3 */4 * * /root/backup-terabox.sh`
-
-**Capacidade TeraBox:** Plano Premium
-
+- **Plano:** Premium
 - **Total:** 2048 GB
+- **Usado:** ~161 GB
+- **Disponível:** ~1887 GB
 
-- **Usado:** ~168 GB
+## Plano de Backup
 
-- **Disponível:** ~1880 GB
+Documentos detalhados em `\\<HOST_IP>\HD-WD-500GB\Dados-WD500GB\Plano_Backup\`:
+- `Plano_Backup.md` — inventário completo de storage e plano de backup
+- `Plano_App_TeraBox_Backup_Manager.md` — arquitetura do app
+- `Prompt_Inicio.md` — prompt para iniciar implementação em chat limpo
 
+## Estrutura de Destino no TeraBox (planejada)
 
-> O cookie do TeraBox expira periodicamente. Quando expirado, o Rclone retorna erro `403 Forbidden`. Renovar manualmente em `http://<ALIST_IP>:5244`
+|Caminho|Status|Volume|
+|---|---|---|
+|Terabox/1. vvy (server - backup)/HD-WD-1TB/|Planejado|85 GB|
+|Terabox/1. vvy (server - backup)/HD-WD-500GB/|Planejado|11 GB|
+|Terabox/1. vvy (server - backup)/SSD-SATA-128GB/|Planejado|Snapshots CTs|
+|Terabox/1. vvy (server - backup)/SSD-NVMe-128GB/|Planejado|Snapshots CTs + VM 200|
 
-### Estrutura de Destino no TeraBox
+## Repositorio
 
-|Caminho|Status|
-|---|---|
-|Terabox/backup-server/HD-WD-1TB/|Ativo|
-|Terabox/backup-server/HD-WD-500GB/|Futuro|
-|Terabox/backup-server/HD-SEA-1TB/|Futuro|
-|Terabox/backup-server/PROXMOX-SYSTEM/|Futuro|
+- Repo publico: `mviniciusy/terabox-backup-manager` (a criar)

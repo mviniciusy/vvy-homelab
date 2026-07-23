@@ -24,7 +24,6 @@ graph TB
         VVV --> |Subnet Router| HERMES[hermes-agent]
         VVV --> |Subnet Router| HANDBRAKE[handbrake]
         VVV --> |Subnet Router| QBIT[qbittorrent]
-        VVV --> |Subnet Router| ALIST[alist-backup]
         VVV --> |Subnet Router| ZABBIX[zabbix]
         VVV --> |Subnet Router| GRAFANA[grafana]
     end
@@ -67,6 +66,5 @@ graph TB
 |hermes-agent (104)|`http://<TAILSCALE_HERMES_IP>:9119`|Nó Tailscale próprio (Basic Auth)|
 |handbrake (112)|`http://<HANDBRAKE_IP>:5800`|Subnet Router|
 |qbittorrent (120)|`http://<QBITTORRENT_IP>:8080`|Subnet Router|
-|alist-backup (130)|`http://<ALIST_IP>:5244`|Subnet Router|
 |zabbix (160)|`http://<ZABBIX_IP>/zabbix`|Subnet Router|
 |grafana (161)|`http://<GRAFANA_IP>:3000`|Subnet Router|

@@ -21,7 +21,6 @@ graph LR
     PVE --> LXC104[hermes-agent<br/>CT 104]
     PVE --> LXC112[handbrake<br/>CT 112]
     PVE --> LXC120[qbittorrent<br/>CT 120]
-    PVE --> LXC130[alist-backup<br/>CT 130]
     PVE --> LXC160[zabbix<br/>CT 160]
     PVE --> LXC161[grafana<br/>CT 161]
     PVE --> VM200[debian-docker<br/>VM 200]
@@ -38,10 +37,9 @@ graph LR
 |100|nextcloud|`<NEXTCLOUD_IP>`|2|HD-WD500GB|Nextcloud – nuvem privada|
 |101|pihole|`<PIHOLE_IP>`|2|local-lvm|Pi-hole – DNS/bloqueio anúncios|
 |103|n8n|`<N8N_IP>`|4|nvme128:20G|n8n – orquestração de workflows IA|
-|104|hermes-agent|`<HERMES_IP>`|4|nvme128:16G|Hermes Agent – gateway de mensageria IA|
+|104|hermes-agent|`<HERMES_IP>`|8|nvme128:16G|Hermes Agent – gateway de mensageria IA|
 |112|handbrake|`<HANDBRAKE_IP>`:5800|2|local-lvm|Handbrake – transcodificação|
 |120|qbittorrent|`<QBITTORRENT_IP>`:8080|6|local-lvm|qBittorrent – cliente torrent|
-|130|alist-backup|`<ALIST_IP>`|2|local-lvm|Alist + Rclone – backup TeraBox|
 |160|zabbix|`<ZABBIX_IP>`|2|local-lvm (20GB)|Zabbix 7.2 – monitoramento|
 |161|grafana|`<GRAFANA_IP>`|2|local-lvm (10GB)|Grafana 12.4 + Prometheus + Node Exporter|
 

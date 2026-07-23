@@ -45,7 +45,7 @@ grep '2026-04-18' /root/logs/telemetry.log  # Ver entradas de uma data
 |Execução|Serviço systemd contínuo (`heartbeat-watchdog.service`)|
 |Mecanismo|Ping em `/dev/watchdog` (iTCO_wdt — hardware watchdog Intel) a cada 10s. Se parar, hardware reboot em 60s|
 |Config módulo|`/etc/modules-load.d/iTCO_wdt.conf` (carrega no boot) + `/etc/modprobe.d/iTCO_wdt.conf` (`options iTCO_wdt nowayout=1 heartbeat=60`)|
-|Migração 21/Jun/2026|Migrado de softdog (software) para iTCO_wdt (hardware). O softdog travava junto com o kernel em hard freeze. NMI watchdog desativado via GRUB cmdline (`nmi_watchdog=0`) — sysctl sozinho não funciona (PMU consumido no boot)|
+|Migração 21/Jun/2026|Migrado de softdog (software) para iTCO_wdt (hardware). O softdog travava junto com o kernel em hard freeze. NMI watchdog reativado via GRUB cmdline (`nmi_watchdog=1`) desde 23/Jul/2026 — detecta hard lockups. kdump-tools instalado (`crashkernel=256M`). softdog carregado como backup do iTCO_wdt|
 |Correção 18/Jun/2026|`printf 'V'` (magic close) substituído por `printf '1'` (keepalive) — o watchdog era desarmado ao invés de reiniciar o servidor|
 |Correção 13/Mai/2026|`WatchdogSec=60` removido do service — era redundante e causava loop de crashes (842+ restarts)|
 
@@ -69,10 +69,22 @@ grep '2026-04-18' /root/logs/telemetry.log  # Ver entradas de uma data
 |iTCO_wdt identity diferente ou ausente|não é "iTCO_wdt"|CRÍTICO|
 |iTCO_wdt nowayout=0|nowayout != 1|CRÍTICO|
 |iTCO_wdt state não ativo|state != "active"|ALERTA|
-|NMI watchdog ativo|kernel.nmi_watchdog != 0|ALERTA|
+|NMI watchdog desativado|kernel.nmi_watchdog == 0|INFO (reativado em Jul/2026)|
 |Load average|> 15|ALERTA|
 |SMART disk failure|qualquer FAILED|CRÍTICO|
 |Kernel OOM/MCE/hardware errors|> 0 ocorrências|ALERTA|
 |Uptime < 10 minutos|< 600s|ALERTA (possível travamento)|
 
 > Este script roda dentro do CT 104 (hermes-agent) e faz SSH para o host vvy. O cronjob usa modo `no_agent=True` (script-only): o stdout do script e entregue diretamente como mensagem, sem chamada ao LLM. Se problemas forem detectados, o usuario pode pedir ao agente para carregar a skill `proxmox-crash-loop-diagnosis` e sugerir correcoes.
+
+### 1.5 mce-collector.sh — Monitoramento MCE/EDAC de Memória
+
+|Item|Detalhe|
+|---|---|
+|Localização|`/usr/local/bin/mce-collector.sh` no host vvy + repo `scripts/server-freeze/bash/mce-collector.sh` + script externo `mce-monitor.sh` no Hermes (`~/.hermes/scripts/`)|
+|Log|`/var/log/mce-monitor.log`|
+|Execução|Cronjob do Hermes Agent a cada 5 minutos (no_agent=True, script-only)|
+|Comportamento|Entrega output cru no Telegram a cada execução|
+|Métricas|CE (Correctable Errors), UE (Uncorrectable Errors), per-dimm, MCE recente do dmesg, uptime, memória livre|
+
+> **Contexto:** Monitora erros de memória ECC no pente de 16GB Micron (channel 1, slot 0). Causa raiz dos hard freezes do servidor desde 14/Jul/2026. Ver `scripts/server-freeze/docs/Incidentes-Modificações/` para histórico completo de incidentes.
