@@ -82,14 +82,4 @@ dmesg -T 2>/dev/null | tail -5 >> "${LOG}" 2>&1
 echo "--- OOM CHECK ---" >> "${LOG}"
 dmesg -T 2>/dev/null | grep -i "oom\|killed process" | tail -3 >> "${LOG}" 2>&1
 
-# --- GPU NVIDIA (se disponível) ---
-echo "--- GPU ---" >> "${LOG}"
-if command -v nvidia-smi &>/dev/null; then
-    nvidia-smi --query-gpu=timestamp,temperature.gpu,fan.speed,utilization.gpu,memory.used,memory.total,power.draw --format=csv,noheader >> "${LOG}" 2>&1
-    # Verificar se fan control está funcionando
-    systemctl is-active nvidia-fancontrol.service >> "${LOG}" 2>&1
-else
-    echo "nvidia-smi not available" >> "${LOG}" 2>&1
-fi
-
 echo "" >> "${LOG}"

@@ -18,7 +18,6 @@ scripts-server-freeze/
     ├── post-reboot-diagnosis.sh       # Diagnóstico após reboot (executar após travamento)
     ├── heartbeat-watchdog.sh          # Heartbeat de reboot automático (iTCO_wdt + softdog backup + SysRq)
     ├── mce-collector.sh              # Coleta métricas MCE/EDAC para análise LLM (cron Hermes 5 min)
-    └── nvidia-fan-control.sh          # Controle de fans GPU RTX 3060 (fixado em 70%) — OBSOLETO (GPU removida)
 ```
 
 ## Scripts em Uso no Servidor
