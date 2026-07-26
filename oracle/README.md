@@ -10,11 +10,11 @@ VM na **Oracle Cloud Free Tier** (São Paulo) que atua como extensão remota do 
 
 ```mermaid
 graph TB
-    subgraph Oracle Cloud — São Paulo
+    subgraph OracleCloud["Oracle Cloud - Sao Paulo"]
         OCI[VM vvy-vnic<br/>Arm A1 Flex<br/><ORACLE_PUBLIC_IP>]
     end
 
-    subgraph Homelab — Rede Local
+    subgraph Homelab["Rede Local"]
         VVY[Proxmox vvy<br/><HOST_IP><br/>Subnet Router Tailscale]
         LAN[Containers LXC<br/>192.168.1.0/24]
     end
