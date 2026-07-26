@@ -24,6 +24,10 @@ graph TB
         Phone[Celular]
     end
 
+    subgraph Oracle Cloud — Sao Paulo
+        OCI[VM vvy-vnic<br/>Arm A1 Flex<br/>168.75.80.201]
+    end
+
     subgraph Proxmox VE - vvy
         subgraph Containers LXC
             NC[nextcloud<br/>CT 100]
@@ -53,11 +57,13 @@ graph TB
     TS --> |Subnet Router| Router
     NB -.-> TS
     Phone -.-> TS
-   
-       style N8N fill:#4caf50,stroke:#2e7d32,color:#fff
+    OCI -.->|SSH internet| Router
+
+    style N8N fill:#4caf50,stroke:#2e7d32,color:#fff
     style HER fill:#9c27b0,stroke:#6a1b9a,color:#fff
     style DK fill:#42a5f5,stroke:#1565c0,color:#fff
     style PH fill:#ff9800,stroke:#e65100,color:#fff
+    style OCI fill:#ff9800,stroke:#e65100,color:#fff
 ```
 
 ---
@@ -80,6 +86,7 @@ graph TB
 | [Hermes Agent](docs/hermes-agent.md) | Gateway de mensageria IA (WhatsApp, Slack) + backend remoto via Tailscale (Desktop App) - CT 104 |
 | [Terraform](docs/terraform-proxmox.md) | Infraestrutura como Codigo - provisionamento Proxmox |
 | [Ansible](docs/ansible-proxmox.md) | Configuracao como Codigo - automacao de tarefas |
+| [Oracle Cloud](docs/oracle-cloud.md) | VM vvy-vnic na Oracle Cloud Free Tier — Arm A1 Flex, extensao remota do homelab |
 
 ---
 
