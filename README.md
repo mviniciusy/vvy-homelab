@@ -25,7 +25,7 @@ graph TB
     end
 
     subgraph Oracle Cloud — Sao Paulo
-        OCI[VM vvy-vnic<br/>Arm A1 Flex<br/>168.75.80.201]
+        OCI[VM vvy-vnic<br/>Arm A1 Flex<br/><ORACLE_PUBLIC_IP>]
     end
 
     subgraph Proxmox VE - vvy
