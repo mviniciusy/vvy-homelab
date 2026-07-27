@@ -32,6 +32,7 @@ Documentos detalhados em `\\<HOST_IP>\HD-WD-500GB\Dados-WD500GB\Plano_Backup\`:
 |Terabox/1. vvy (server - backup)/HD-WD-500GB/|Planejado|11 GB|
 |Terabox/1. vvy (server - backup)/SSD-SATA-128GB/|Planejado|Snapshots CTs|
 |Terabox/1. vvy (server - backup)/SSD-NVMe-128GB/|Planejado|Snapshots CTs + VM 200|
+|Terabox/Oracle-VM/vaultwarden/|Planejado|Dados Vaultwarden (SQLite + attachments)|
 
 ## Repositorio
 
