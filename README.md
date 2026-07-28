@@ -24,8 +24,8 @@ graph TB
         Phone[Celular]
     end
 
-    subgraph Oracle Cloud — Sao Paulo
-        OCI[VM vvy-vnic<br/>Arm A1 Flex<br/><ORACLE_PUBLIC_IP>]
+    subgraph OC["Oracle Cloud - Sao Paulo"]
+        OCI[VM vvy-vnic<br/>Arm A1 Flex<br/><ORACLE_PUBLIC_IP><br/>Vaultwarden + WoL]
     end
 
     subgraph Proxmox VE - vvy
@@ -57,7 +57,7 @@ graph TB
     TS --> |Subnet Router| Router
     NB -.-> TS
     Phone -.-> TS
-    OCI -.->|SSH internet| Router
+    OCI -.->|SSH + Tailscale + WoL| Router
 
     style N8N fill:#4caf50,stroke:#2e7d32,color:#fff
     style HER fill:#9c27b0,stroke:#6a1b9a,color:#fff
