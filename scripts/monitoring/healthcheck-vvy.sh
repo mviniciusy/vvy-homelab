@@ -5,7 +5,7 @@
 # Silencioso se tudo OK, só alerta se encontrar problemas
 # ============================================================================
 
-HOST="root@192.168.1.100"
+HOST="root@<HOST_IP>"
 ALERTS=""
 
 # 1. heartbeat-watchdog — verificar restart counter

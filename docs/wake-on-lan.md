@@ -10,7 +10,7 @@ Sistema para acordar e reiniciar o servidor vvy (casa) remotamente, a partir da 
 
 | Item | Valor |
 |---|---|
-| MAC do vvy (nic0) | `22:13:5c:03:6f:51` |
+| MAC do vvy (nic0) | `<VVY_MAC>` |
 | IP local do vvy | `<HOST_IP>` |
 | IP público de casa | Dinâmico (DDNS: `vvy-server.ddns.net`) |
 | Porta WoL | 9 UDP |
@@ -49,7 +49,7 @@ O roteador de casa tem port forwarding configurado:
 | Endereço de transmissão | `192.168.1.255` (broadcast) |
 | IP do dispositivo | `vvy-server.ddns.net` (DDNS) |
 
-> O roteador recebe o magic packet na WAN (porta 9) e faz broadcast para `192.168.1.255` na LAN. Todos os dispositivos recebem, mas só o vvy com MAC `22:13:5c:03:6f:51` que suporta WoL acorda.
+> O roteador recebe o magic packet na WAN (porta 9) e faz broadcast para `192.168.1.255` na LAN. Todos os dispositivos recebem, mas só o vvy com MAC `<VVY_MAC>` que suporta WoL acorda.
 
 ## 4. ddclient — DNS Dinâmico (NO-IP)
 
@@ -118,7 +118,7 @@ Acorda o vvy enviando magic packet para o IP público de casa (via DDNS). Não d
 # O roteador faz port forwarding da porta 9 para <HOST_IP> na LAN
 # Funciona mesmo se o vvy estiver travado (nao depende de Tailscale estar ativo)
 
-MAC_VVY="22:13:5c:03:6f:51"
+MAC_VVY="<VVY_MAC>"
 DDNS="vvy-server.ddns.net"
 IP_VVY_TAILSCALE="<TAILSCALE_VVV_IP>"
 
@@ -222,8 +222,8 @@ O app de WoL no celular (Android) tem dois perfis configurados:
 
 | Perfil | MAC | IP/Host | Como funciona |
 |---|---|---|---|
-| LOCAL | `22:13:5c:03:6f:51` | `<HOST_IP>` | Direto na LAN (Wi-Fi de casa) |
-| REMOTO | `22:13:5c:03:6f:51` | `vvy-server.ddns.net` | Via internet → roteador → port forwarding |
+| LOCAL | `<VVY_MAC>` | `<HOST_IP>` | Direto na LAN (Wi-Fi de casa) |
+| REMOTO | `<VVY_MAC>` | `vvy-server.ddns.net` | Via internet → roteador → port forwarding |
 
 ## 8. Limitações
 

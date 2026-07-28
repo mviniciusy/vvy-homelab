@@ -91,6 +91,6 @@ O vvy roda `ddclient` para manter o `vvy-server.ddns.net` atualizado quando o IP
 
 ## 3. Wake-on-LAN (WoL)
 
-O vvy suporta WoL (magic packet) na interface fisica `nic0` (MAC `22:13:5c:03:6f:51`). O roteador faz port forwarding da porta 9 UDP para broadcast `192.168.1.255` na LAN. A Oracle VM pode acordar e reiniciar o vvy remotamente via DDNS + port forwarding.
+O vvy suporta WoL (magic packet) na interface fisica `nic0` (MAC `<VVY_MAC>`). O roteador faz port forwarding da porta 9 UDP para broadcast `192.168.1.255` na LAN. A Oracle VM pode acordar e reiniciar o vvy remotamente via DDNS + port forwarding.
 
 > Ver doc dedicado: [Wake-on-LAN](wake-on-lan.md)
