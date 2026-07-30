@@ -34,6 +34,7 @@ graph TB
             QB[qbittorrent<br/>CT 120]
             ZB[zabbix<br/>CT 160]
             GF[grafana<br/>CT 161]
+            BK[backup-manager<br/>CT 105]
         end
 
         subgraph Máquinas Virtuais
@@ -72,7 +73,7 @@ graph TB
 | [Proxmox Setup](docs/proxmox-setup.md) | Virtualizacao Proxmox 9.1.6, containers LXC e VMs |
 | [Storage](docs/storage.md) | HDs de dados, pontos de montagem e UUIDs |
 | [Networking](docs/networking.md) | VPN Tailscale, nos, subnet router e acesso remoto |
-| [Backup](docs/backup.md) | Sistema de backup — Google Drive 2TB (em planejamento) |
+| [Backup](docs/backup.md) | Sistema de backup — rclone + Google Drive 2TB (CT 105) |
 | [Monitoring - Zabbix](docs/monitoring-zabbix.md) | Zabbix 7.2, hosts monitorados e thresholds |
 | [Monitoring - Grafana](docs/monitoring-grafana.md) | Grafana 12.4 + Prometheus + Node Exporter |
 | [Scripts](docs/scripts.md) | Scripts de telemetria e automacao |
