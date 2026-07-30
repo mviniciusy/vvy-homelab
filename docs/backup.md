@@ -1,4 +1,4 @@
-# Sistema de Backup (TeraBox)
+# Sistema de Backup
 
 > Atualizado em Jul/2026
 
@@ -6,34 +6,14 @@
 
 ## Status
 
-O sistema anterior (Alist + Rclone no LXC 130) foi **removido**. O CT 130 foi destruído.
+Sistema de backup em transição. O stack anterior (Alist + Rclone no LXC 130) foi removido e o CT 130 foi destruído.
 
-**Novo sistema planejado:** TeraBox Backup Manager — aplicação Python/FastAPI + Node.js (terabox-api) deployada na VM 200 (Docker).
-
-## Capacidade TeraBox
-
-- **Plano:** Premium
-- **Total:** 2048 GB
-- **Usado:** ~161 GB
-- **Disponível:** ~1887 GB
+**Novo sistema planejado:** Google Drive 2TB — aplicação self-hosted (Python/FastAPI) deployada no CT 105 (LXC, Debian 12). Modo sync espelhado para dados; vzdump sem sync.
 
 ## Plano de Backup
 
 Documentos detalhados em `\\<HOST_IP>\HD-WD-500GB\Dados-WD500GB\Plano_Backup\`:
 - `Plano_Backup.md` — inventário completo de storage e plano de backup
-- `Plano_App_TeraBox_Backup_Manager.md` — arquitetura do app
-- `Prompt_Inicio.md` — prompt para iniciar implementação em chat limpo
+- `Plano_App.md` — arquitetura do app backup manager (Google Drive)
 
-## Estrutura de Destino no TeraBox (planejada)
-
-|Caminho|Status|Volume|
-|---|---|---|
-|Terabox/1. vvy (server - backup)/HD-WD-1TB/|Planejado|85 GB|
-|Terabox/1. vvy (server - backup)/HD-WD-500GB/|Planejado|11 GB|
-|Terabox/1. vvy (server - backup)/SSD-SATA-128GB/|Planejado|Snapshots CTs|
-|Terabox/1. vvy (server - backup)/SSD-NVMe-128GB/|Planejado|Snapshots CTs + VM 200|
-|Terabox/Oracle-VM/vaultwarden/|Planejado|Dados Vaultwarden (SQLite + attachments)|
-
-## Repositorio
-
-- Repo publico: `mviniciusy/terabox-backup-manager` (a criar)
+> Os planos anteriores (baseados em TeraBox Premium) foram abandonados. O destino de backup agora e Google Drive 2TB.

@@ -10,10 +10,6 @@ Home Lab baseado no **Proxmox VE**, projetado para centralizar serviços de infr
 
 ```mermaid
 graph TB
-    subgraph Internet
-        TeraBox[TeraBox<br/>Cloud Backup 2TB]
-    end
-
     subgraph Rede Local
         Router[Roteador<br/>Fibra 450 Mbps]
     end
@@ -76,7 +72,7 @@ graph TB
 | [Proxmox Setup](docs/proxmox-setup.md) | Virtualizacao Proxmox 9.1.6, containers LXC e VMs |
 | [Storage](docs/storage.md) | HDs de dados, pontos de montagem e UUIDs |
 | [Networking](docs/networking.md) | VPN Tailscale, nos, subnet router e acesso remoto |
-| [Backup](docs/backup.md) | Sistema de backup TeraBox (Alist removido, app planejado) |
+| [Backup](docs/backup.md) | Sistema de backup — Google Drive 2TB (em planejamento) |
 | [Monitoring - Zabbix](docs/monitoring-zabbix.md) | Zabbix 7.2, hosts monitorados e thresholds |
 | [Monitoring - Grafana](docs/monitoring-grafana.md) | Grafana 12.4 + Prometheus + Node Exporter |
 | [Scripts](docs/scripts.md) | Scripts de telemetria e automacao |
