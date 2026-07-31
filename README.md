@@ -85,6 +85,7 @@ graph TB
 | [Terraform](docs/terraform-proxmox.md) | Infraestrutura como Código — provisionamento Proxmox |
 | [Ansible](docs/ansible-proxmox.md) | Configuração como Código — automação de tarefas |
 | [Oracle Cloud](docs/oracle-cloud.md) | VM vvy-vnic na Oracle Cloud Free Tier — Arm A1 Flex, extensão remota do homelab |
+| [BIOS vvy](docs/bios-vvy.md) | Configuração completa da BIOS QIYIDA X79 — C-states, power limits, QPI, ACPI |
 
 ---
 
