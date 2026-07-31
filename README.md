@@ -22,11 +22,11 @@ graph TB
         Phone[Celular]
     end
 
-    subgraph OC["Oracle Cloud — São Paulo"]
+    subgraph OC["Oracle Cloud - São Paulo"]
         OCI[VM vvy-vnic<br/>Arm A1 Flex<br/><ORACLE_PUBLIC_IP><br/>Vaultwarden + WoL]
     end
 
-    subgraph Proxmox VE — vvy
+    subgraph Proxmox VE - vvy
         subgraph Containers LXC
             NC[nextcloud<br/>CT 100]
             PH[pihole<br/>CT 101 - DNS]
