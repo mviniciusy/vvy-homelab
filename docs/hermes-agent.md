@@ -164,22 +164,39 @@ O Hermes Agent possui um sistema de cronjobs nativo para monitoramento automatiz
 
 |Cronjob|Schedule|Modo|Script|Descricao|
 |---|---|---|---|---|
-|vvy-healthcheck|A cada 2h|no_agent=True (script-only)|`~/.hermes/scripts/healthcheck-vvy.sh`|Verifica saude do Proxmox: heartbeat, load, SMART, kernel, uptime. Silencioso se OK, alerta se detectar problemas.|
+|vvy-healthcheck|A cada 2h|no_agent=True (script-only)|`~/.hermes/scripts/vvy-healthcheck-unified.sh`|Healthcheck + MCE/EDAC unificados: heartbeat, load, SMART, kernel, uptime, CE/UE RAM. Silencioso se OK, alerta se detectar problemas.|
 
 **Modo no_agent=True:** O script roda diretamente sem chamada ao LLM. O stdout do script e entregue como mensagem no canal configurado. Isso evita rate limits (HTTP 429), saida vazia e alucinacoes do modelo.
 
 **Scripts do cronjob:**
-- Copia de trabalho: `~/.hermes/scripts/healthcheck-vvy.sh` (usado pelo cronjob)
-- Script original: `/root/scripts/healthcheck-vvy.sh`
-- Copia no repo: `scripts/monitoring/healthcheck-vvy.sh`
+- Copia de trabalho: `~/.hermes/scripts/vvy-healthcheck-unified.sh` (usado pelo cronjob)
+- Scripts antigos (substituidos): `healthcheck-vvy.sh` + `mce-monitor.sh` — unificados em 31/Jul/2026
+- Copia no repo: `scripts/monitoring/vvy-healthcheck-unified.sh`
 
 **Comandos uteis:**
 
 | Acao | Comando |
 |------|---------|
 | Listar cronjobs | `hermes cron list` |
-| Rodar healthcheck manualmente | `hermes cron run vvy-healthcheck` |
+| Rodar healthcheck manualmente | `bash ~/.hermes/scripts/vvy-healthcheck-unified.sh` |
 | Ver log do healthcheck | `hermes cron log vvy-healthcheck` |
+
+### Heartbeat Externo — Oracle VM (monitoramento de queda do vvy)
+
+O vvy nao pode se auto-monitorar em hard freeze — o Zabbix (CT 160) morre
+junto com o host. A Oracle VM (sempre online na nuvem) executa um
+heartbeat externo via Tailscale.
+
+|Item|Detalhe|
+|---|---|
+|Script|`/opt/vvy-monitor/vvy-heartbeat.sh` (Oracle VM)|
+|Cron|A cada 1 min (`/etc/cron.d/vvy-heartbeat`)|
+|Metodo|Ping Tailscale para vvy (<TAILSCALE_VVV_IP>), 3 falhas = offline|
+|Alerta|Telegram bot `@hermesvvy_bot` (chat <TELEGRAM_CHAT_ID>)|
+|Eventos|Offline (apos 3 falhas), lembrete a cada 30 min, recuperacao|
+|Estado|Arquivo em `/var/lib/vvy-monitor/state`|
+|Log|`/var/log/vvy-monitor.log` (rotacao 5000 linhas)|
+|Protecoes|`flock` contra execucao simultanea, rotacao automatica de log|
 
 ### 1.9 Acesso ao Host via Token de API Proxmox
 
