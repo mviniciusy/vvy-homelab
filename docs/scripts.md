@@ -6,25 +6,10 @@
 
 ## 1. Scripts
 
-### 1.1 monitor.sh – Telemetria do Servidor
+### 1.1 monitor.sh — REMOVIDO (31/Jul/2026)
 
-|Item|Detalhe|
-|---|---|
-|Localização|`/root/monitor.sh` – no node Proxmox (vvv)|
-|Log|`/root/logs/telemetry.log`|
-|Execução|A cada 1 minuto via CronJob: `* * * * * /root/monitor.sh`|
-|Retenção|Últimas 10.000 linhas (rotação automática)|
-|Métricas|Temperatura CPU (sensors), RAM usada/total (free -m), Load Average (uptime)|
-
-**Comandos úteis:**
-
-```bash
-tail -20 /root/logs/telemetry.log    # Ver últimas 20 entradas
-tail -f /root/logs/telemetry.log     # Monitorar em tempo real
-grep '2026-04-18' /root/logs/telemetry.log  # Ver entradas de uma data
-```
-
-> O código-fonte do script está disponível em [`scripts/monitoring/monitor.sh`](../scripts/monitoring/monitor.sh).
+> Script `/root/monitor.sh` nao existe mais. Entrada órfã no crontab removida em 31/Jul/2026.
+> A telemetria do servidor agora é feita pelo `server-watchdog.sh` (seção 1.2).
 
 ### 1.2 server-watchdog.sh – Monitoramento Preventivo
 
@@ -45,46 +30,36 @@ grep '2026-04-18' /root/logs/telemetry.log  # Ver entradas de uma data
 |Execução|Serviço systemd contínuo (`heartbeat-watchdog.service`)|
 |Mecanismo|Ping em `/dev/watchdog` (iTCO_wdt — hardware watchdog Intel) a cada 10s. Se parar, hardware reboot em 60s|
 |Config módulo|`/etc/modules-load.d/iTCO_wdt.conf` (carrega no boot) + `/etc/modprobe.d/iTCO_wdt.conf` (`options iTCO_wdt nowayout=1 heartbeat=60`)|
-|Migração 21/Jun/2026|Migrado de softdog (software) para iTCO_wdt (hardware). O softdog travava junto com o kernel em hard freeze. NMI watchdog reativado via GRUB cmdline (`nmi_watchdog=1`) desde 23/Jul/2026 — detecta hard lockups. kdump-tools instalado (`crashkernel=256M`). softdog carregado como backup do iTCO_wdt|
+|Migração 21/Jun/2026|Migrado de softdog (software) para iTCO_wdt (hardware). O softdog travava junto com o kernel em hard freeze. NMI watchdog desativado via GRUB cmdline (`nmi_watchdog=0`) desde 21/Jun/2026 — o PMU counter consumia recursos e nao ajudava em hard freeze silicon-level. kdump-tools instalado (`crashkernel=256M`). softdog carregado como backup do iTCO_wdt|
 |Correção 18/Jun/2026|`printf 'V'` (magic close) substituído por `printf '1'` (keepalive) — o watchdog era desarmado ao invés de reiniciar o servidor|
 |Correção 13/Mai/2026|`WatchdogSec=60` removido do service — era redundante e causava loop de crashes (842+ restarts)|
 
 > **IMPORTANTE:** O watchdog atual é o iTCO_wdt (hardware Intel TCO Timer), NÃO o softdog. O iTCO_wdt tem timer de hardware independente — mesmo em hard freeze onde o kernel congela, o hardware reinicia a máquina. O softdog era um watchdog software que travava junto com o kernel. O script deve usar `printf '1'` (ou qualquer caractere exceto `V`) para keepalive. O service file NÃO deve conter `WatchdogSec`.
 
-### 1.4 healthcheck-vvy.sh – Verificacao de Saude Automatizada
+### 1.4 vvy-heartbeat.sh — Heartbeat Externo (Oracle VM → vvy via Tailscale)
 
 |Item|Detalhe|
 |---|---|
-|Localização|`/root/scripts/healthcheck-vvy.sh` no CT 104 (hermes-agent) + `~/.hermes/scripts/healthcheck-vvy.sh` (copia cronjob) + repo `scripts/monitoring/healthcheck-vvy.sh`|
+|Localização|`/opt/vvy-monitor/vvy-heartbeat.sh` — na Oracle VM (nuvem, sempre online)|
+|Estado|`/var/lib/vvy-monitor/state`|
+|Log|`/var/log/vvy-monitor.log` (rotação 5000 linhas)|
+|Execução|Cron a cada 1 min via `/etc/cron.d/vvy-heartbeat`|
+|Método|Ping Tailscale para vvy (<TAILSCALE_VVV_IP>), 3 falhas consecutivas = offline|
+|Alerta|Telegram bot `@hermesvvy_bot` (chat <TELEGRAM_CHAT_ID>)|
+|Eventos|Offline (após 3 falhas), lembrete a cada 30 min, recuperação|
+|Proteções|`flock` contra execução simultânea, rotação automática de log|
+
+> **Por que externo:** O Zabbix (CT 160) e o server-watchdog.sh rodam DENTRO do vvy. Em hard freeze, ambos morrem junto. A Oracle VM é o único nó sempre online que pode detectar a queda e alertar via Telegram.
+
+### 1.5 vvy-healthcheck-unified.sh — Healthcheck + MCE/EDAC (unificado 31/Jul/2026)
+
+|Item|Detalhe|
+|---|---|
+|Localização|`~/.hermes/scripts/vvy-healthcheck-unified.sh` no CT 104 (hermes-agent) + repo `scripts/monitoring/`|
 |Execução|Cronjob do Hermes Agent a cada 2 horas (no_agent=True, script-only)|
 |Comportamento|Silencioso se tudo OK, alerta se detectar problemas|
-|Verificações|heartbeat restart counter, WatchdogSec regression, iTCO_wdt (identity/nowayout/state), NMI watchdog, load average, SMART discos, kernel errors (OOM/MCE/hardware), uptime recente|
+|Verificações|heartbeat restart counter, WatchdogSec regression, load average, SMART discos, kernel errors (OOM/MCE/hardware), uptime recente, CE/UE RAM (EDAC/MCE)|
 
-**Verificações e thresholds:**
+> **Unificação (31/Jul/2026):** Substitui dois scripts separados: `healthcheck-vvy.sh` (healthcheck) e `mce-monitor.sh` (MCE/EDAC). Antes eram dois cron jobs separados entregando duas mensagens Telegram a cada 2h. Agora é um único job entregando uma mensagem consolidada.
 
-|Verificação|Threshold|Nível|
-|---|---|---|
-|heartbeat-watchdog restart counter|> 5|CRÍTICO|
-|WatchdogSec no service file|qualquer ocorrência|CRÍTICO|
-|iTCO_wdt identity diferente ou ausente|não é "iTCO_wdt"|CRÍTICO|
-|iTCO_wdt nowayout=0|nowayout != 1|CRÍTICO|
-|iTCO_wdt state não ativo|state != "active"|ALERTA|
-|NMI watchdog desativado|kernel.nmi_watchdog == 0|INFO (reativado em Jul/2026)|
-|Load average|> 15|ALERTA|
-|SMART disk failure|qualquer FAILED|CRÍTICO|
-|Kernel OOM/MCE/hardware errors|> 0 ocorrências|ALERTA|
-|Uptime < 10 minutos|< 600s|ALERTA (possível travamento)|
-
-> Este script roda dentro do CT 104 (hermes-agent) e faz SSH para o host vvy. O cronjob usa modo `no_agent=True` (script-only): o stdout do script e entregue diretamente como mensagem, sem chamada ao LLM. Se problemas forem detectados, o usuario pode pedir ao agente para carregar a skill `proxmox-crash-loop-diagnosis` e sugerir correcoes.
-
-### 1.5 mce-collector.sh — Monitoramento MCE/EDAC de Memória
-
-|Item|Detalhe|
-|---|---|
-|Localização|`/usr/local/bin/mce-collector.sh` no host vvy + repo `scripts/server-freeze/bash/mce-collector.sh` + script externo `mce-monitor.sh` no Hermes (`~/.hermes/scripts/`)|
-|Log|`/var/log/mce-monitor.log`|
-|Execução|Cronjob do Hermes Agent a cada 5 minutos (no_agent=True, script-only)|
-|Comportamento|Entrega output cru no Telegram a cada execução|
-|Métricas|CE (Correctable Errors), UE (Uncorrectable Errors), per-dimm, MCE recente do dmesg, uptime, memória livre|
-
-> **Contexto:** Monitora erros de memória ECC no pente de 16GB Micron (channel 1, slot 0). Causa raiz dos hard freezes do servidor desde 14/Jul/2026. Ver `scripts/server-freeze/docs/Incidentes-Modificações/` para histórico completo de incidentes.
+> **Contexto MCE/EDAC:** Monitora erros de memória ECC nos pentes de 16GB Micron (channel 1, slot 0) e 8GB (channel 3, slot 0). Ver `scripts/server-freeze/docs/Incidentes-Modificações/` para histórico completo de incidentes.
