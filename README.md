@@ -1,8 +1,10 @@
 # vvy-homelab
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-
-Home Lab baseado no **Proxmox VE**, projetado para centralizar serviços de infraestrutura de rede, armazenamento em nuvem privada. Atua como núcleo de processamento para tarefas que exigem disponibilidade 24/7, permitindo que o notebook principal seja utilizado apenas para interface de trabalho e criação.
+Home lab baseado no **Proxmox VE**, projetado para centralizar serviços de
+infraestrutura de rede e armazenamento em nuvem privada. Atua como núcleo
+de processamento para tarefas que exigem disponibilidade 24/7, permitindo
+que o notebook principal seja utilizado apenas para interface de trabalho
+e criação.
 
 ---
 
@@ -20,15 +22,15 @@ graph TB
         Phone[Celular]
     end
 
-    subgraph OC["Oracle Cloud - Sao Paulo"]
+    subgraph OC["Oracle Cloud — São Paulo"]
         OCI[VM vvy-vnic<br/>Arm A1 Flex<br/><ORACLE_PUBLIC_IP><br/>Vaultwarden + WoL]
     end
 
-    subgraph Proxmox VE - vvy
+    subgraph Proxmox VE — vvy
         subgraph Containers LXC
             NC[nextcloud<br/>CT 100]
             PH[pihole<br/>CT 101 - DNS]
-                       N8N[n8n<br/>CT 103 - Workflows IA]
+            N8N[n8n<br/>CT 103 - Workflows IA]
             HER[hermes-agent<br/>CT 104 - Mensageria IA]
             HB[handbrake<br/>CT 112]
             QB[qbittorrent<br/>CT 120]
@@ -65,39 +67,32 @@ graph TB
 
 ---
 
-## Documentacao
+## Documentação
 
-| Documento | Descricao |
+| Documento | Descrição |
 |---|---|
-| [Hardware](docs/hardware.md) | Especificacoes do servidor (Xeon E5-2470 v2, RAM, SSDs) e do cliente |
-| [Proxmox Setup](docs/proxmox-setup.md) | Virtualizacao Proxmox 9.1.6, containers LXC e VMs |
+| [Hardware](docs/hardware.md) | Especificações do servidor (Xeon E5-2470 v2, RAM, SSDs) e do cliente |
+| [Proxmox Setup](docs/proxmox-setup.md) | Virtualização Proxmox VE 9.2.5, containers LXC e VMs |
 | [Storage](docs/storage.md) | HDs de dados, pontos de montagem e UUIDs |
-| [Networking](docs/networking.md) | VPN Tailscale, nos, subnet router e acesso remoto |
+| [Networking](docs/networking.md) | VPN Tailscale, nós, subnet router e acesso remoto |
 | [Backup](docs/backup.md) | Sistema de backup — rclone + Google Drive 2TB (CT 105) |
 | [Monitoring - Zabbix](docs/monitoring-zabbix.md) | Zabbix 7.2, hosts monitorados e thresholds |
 | [Monitoring - Grafana](docs/monitoring-grafana.md) | Grafana 12.4 + Prometheus + Node Exporter |
-| [Scripts](docs/scripts.md) | Scripts de telemetria e automacao |
+| [Scripts](docs/scripts.md) | Scripts de telemetria e automação |
 | [Docker VM](docs/docker-vm.md) | VM Debian 12 com Docker e Portainer |
-| [n8n Workflows](docs/n8n-workflows.md) | Oquestracao de workflows IA com n8n |
-| [Hermes Agent](docs/hermes-agent.md) | Gateway de mensageria IA (WhatsApp, Slack) + backend remoto via Tailscale (Desktop App) - CT 104 |
-| [Terraform](docs/terraform-proxmox.md) | Infraestrutura como Codigo - provisionamento Proxmox |
-| [Ansible](docs/ansible-proxmox.md) | Configuracao como Codigo - automacao de tarefas |
-| [Oracle Cloud](docs/oracle-cloud.md) | VM vvy-vnic na Oracle Cloud Free Tier — Arm A1 Flex, extensao remota do homelab |
+| [n8n Workflows](docs/n8n-workflows.md) | Orquestração de workflows IA com n8n |
+| [Hermes Agent](docs/hermes-agent.md) | Gateway de mensageria IA (Telegram) + backend remoto via Tailscale (Desktop App) — CT 104 |
+| [Terraform](docs/terraform-proxmox.md) | Infraestrutura como Código — provisionamento Proxmox |
+| [Ansible](docs/ansible-proxmox.md) | Configuração como Código — automação de tarefas |
+| [Oracle Cloud](docs/oracle-cloud.md) | VM vvy-vnic na Oracle Cloud Free Tier — Arm A1 Flex, extensão remota do homelab |
 
 ---
 
 ## Scripts
 
-| Script | Descricao |
+| Script | Descrição |
 |---|---|
-| [`scripts/monitoring/monitor.sh`](scripts/monitoring/monitor.sh) | Telemetria do servidor - temperatura CPU, RAM e load average |
-| [`scripts/server-freeze/`](scripts/server-freeze/) | Kit de diagnostico de travamento - watchdog, diagnostico pos-reboot e instalador |
-| [`scripts/sync/`](scripts/sync/) | Sincronizacao privado->publico (sync_public.py) |
-| [`scripts/monitoring/healthcheck-vvy.sh`](scripts/monitoring/healthcheck-vvy.sh) | Verificacao de saude automatizada do vvy - cronjob Hermes a cada 2h (no_agent=True, script-only) |
-| [`scripts/server-freeze/bash/mce-collector.sh`](scripts/server-freeze/bash/mce-collector.sh) | Monitoramento MCE/EDAC de memoria — cronjob Hermes a cada 5 min (no_agent, script-only) |
-
----
-
-## Licenca
-
-Este projeto esta licenciado sob a [MIT License](LICENSE).
+| [`scripts/monitoring/server-watchdog.sh`](scripts/monitoring/server-watchdog.sh) | Telemetria do servidor — memória, CPU, disco, rede. Cron a cada 1 min |
+| [`scripts/server-freeze/`](scripts/server-freeze/) | Kit de diagnóstico de travamento — watchdog, diagnóstico pós-reboot e instalador |
+| [`scripts/sync/`](scripts/sync/) | Sincronização privado → público (sync_public.py) |
+| [`scripts/monitoring/vvy-healthcheck-unified.sh`](scripts/monitoring/vvy-healthcheck-unified.sh) | Healthcheck + MCE/EDAC unificados — cronjob Hermes a cada 2h (no_agent=True, script-only) |
