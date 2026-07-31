@@ -77,7 +77,6 @@ graph TB
 | [Monitoring - Zabbix](docs/monitoring-zabbix.md) | Zabbix 7.2, hosts monitorados e thresholds |
 | [Monitoring - Grafana](docs/monitoring-grafana.md) | Grafana 12.4 + Prometheus + Node Exporter |
 | [Scripts](docs/scripts.md) | Scripts de telemetria e automacao |
-| [Admin Remoto](docs/admin-remote.md) | VS Code Remote SSH e boas praticas |
 | [Docker VM](docs/docker-vm.md) | VM Debian 12 com Docker e Portainer |
 | [n8n Workflows](docs/n8n-workflows.md) | Oquestracao de workflows IA com n8n |
 | [Hermes Agent](docs/hermes-agent.md) | Gateway de mensageria IA (WhatsApp, Slack) + backend remoto via Tailscale (Desktop App) - CT 104 |
