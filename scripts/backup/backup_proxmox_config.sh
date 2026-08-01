@@ -10,7 +10,7 @@
 #
 # Fluxo:
 #   1. Cria tar.gz no host (necessario: /etc/pve/ so existe no host)
-#   2. Copia o tar para /mnt/pve/HD-WD500GB/vzdump/dump/ (storage do backup-dump)
+#   2. Copia o tar para /mnt/pve/HD-WD500GB/Dados-WD500GB/vzdump/dump/ (storage do backup-dump)
 #      que e montado no CT 105 como /mnt/wd500gb/vzdump/dump/
 #   3. Upload para Google Drive via rclone rodando no CT 105
 #   4. Retention: 7 dias local, 30 dias no Drive
@@ -32,7 +32,7 @@ DATE="$(date +%Y-%m-%d)"
 TAR_NAME="etc-pve-${DATE}.tar.gz"
 
 # Diretorios
-STORAGE_DIR="/mnt/pve/HD-WD500GB/vzdump/dump"          # no host (storage HD-WD500GB)
+STORAGE_DIR="/mnt/pve/HD-WD500GB/Dados-WD500GB/vzdump/dump"          # no host (storage HD-WD500GB)
 CT_STORAGE_DIR="/mnt/wd500gb/vzdump/dump"             # mesmo ponto, visto do CT 105
 GDRIVE_REMOTE="gdrive"
 GDRIVE_PATH="'1. vvy/vvy-server-backup/Proxmox-Config/'"

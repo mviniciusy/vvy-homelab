@@ -4,11 +4,11 @@
 # Fluxo para cada vmid: vzdump <vmid> → upload rclone (via CT 105) → retention local (1) + remota (30d)
 #
 # Cron:    1º DOM 01:00   (0 0 1 1-12 * root /root/scripts/backup/snapshot_mensal.sh)
-# Storage: backup-dump    (dir:/mnt/pve/HD-WD500GB/vzdump, content=backup)
+# Storage: backup-dump    (dir:/mnt/pve/HD-WD500GB/Dados-WD500GB/vzdump, content=backup)
 # Drive:   1. vvy/vvy-server-backup/SSD-{NVMe|SATA}-128GB/CT-<id>-<hostname>/
 #
 #   NVMe:  CT-103-n8n
-#   SATA:  CT-112-handbrake, CT-120-qbit-vpn
+#   SATA:  CT-112-handbrake, CT-120-qbittorrent
 #
 set -euo pipefail
 
@@ -18,7 +18,7 @@ set -euo pipefail
 SCRIPT_NAME="snapshot_mensal"
 CT_RCLONE=105                            # CT backup-manager (rclone + gdrive:)
 
-DUMP_DIR_BASE="/mnt/pve/HD-WD500GB/vzdump/dump"     # caminho no host vvy
+DUMP_DIR_BASE="/mnt/pve/HD-WD500GB/Dados-WD500GB/vzdump/dump"     # caminho no host vvy
 RCLONE_SRC_BASE="/mnt/wd500gb/vzdump/dump"          # mesmo dir, visto do CT 105
 RCLONE_REMOTE="gdrive"
 REMOTE_BASE_ROOT="1. vvy/vvy-server-backup"
@@ -33,7 +33,7 @@ LOCK="/tmp/${SCRIPT_NAME}.lock"
 ENTRIES=(
     "103|CT|n8n|SSD-NVMe-128GB"
     "112|CT|handbrake|SSD-SATA-128GB"
-    "120|CT|qbit-vpn|SSD-SATA-128GB"
+    "120|CT|qbittorrent|SSD-SATA-128GB"
 )
 
 # ============================================================================
@@ -91,7 +91,7 @@ for entry in "${ENTRIES[@]}"; do
             2>&1 | tee -a "$LOG"; then
         log "INFO" "vzdump ${VMID} OK."
     else
-        RC=$?
+        RC=${PIPESTATUS[0]}
         log "ERROR" "vzdump ${VMID} falhou (exit ${RC}). Pulando para próximo."
         TOTAL_FAIL=$((TOTAL_FAIL + 1))
         continue
@@ -107,7 +107,7 @@ for entry in "${ENTRIES[@]}"; do
             2>&1 | tee -a "$LOG"; then
         log "INFO" "Upload ${CT_DEST} OK."
     else
-        RC=$?
+        RC=${PIPESTATUS[0]}
         log "ERROR" "Upload ${CT_DEST} falhou (exit ${RC}). Continuando para retention."
     fi
 
@@ -131,7 +131,7 @@ for entry in "${ENTRIES[@]}"; do
             2>&1 | tee -a "$LOG"; then
         log "INFO" "Retention remota ${CT_DEST} OK."
     else
-        RC=$?
+        RC=${PIPESTATUS[0]}
         log "WARN" "Retention remota ${CT_DEST}: exit ${RC} (sem arquivos a deletar?)."
     fi
 

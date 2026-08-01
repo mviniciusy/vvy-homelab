@@ -40,7 +40,6 @@ DIRS=(
     "2 Oracle"
     "iac"
     "logs"
-    "Markdown"
     "scripts"
 )
 

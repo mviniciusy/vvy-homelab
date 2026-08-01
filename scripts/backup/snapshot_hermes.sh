@@ -4,7 +4,7 @@
 # Fluxo:  vzdump 104 → upload rclone (via CT 105) → retention local (2) + remota (7 dias)
 #
 # Cron:    DIÁRIO 02:30   (0 30 2 * * * root /root/scripts/backup/snapshot_hermes.sh)
-# Storage: backup-dump    (dir:/mnt/pve/HD-WD500GB/vzdump, content=backup)
+# Storage: backup-dump    (dir:/mnt/pve/HD-WD500GB/Dados-WD500GB/vzdump, content=backup)
 # Drive:   1. vvy/vvy-server-backup/SSD-NVMe-128GB/CT-104-hermes-agent/
 #
 set -euo pipefail
@@ -19,7 +19,7 @@ SSD_TIPO="NVMe"                          # NVMe | SATA
 SSD_DIR="SSD-NVMe-128GB"
 CT_DEST="CT-${VMID}-${HOSTNAME}"
 
-DUMP_DIR="/mnt/pve/HD-WD500GB/vzdump/dump"           # caminho no host vvy
+DUMP_DIR="/mnt/pve/HD-WD500GB/Dados-WD500GB/vzdump/dump"           # caminho no host vvy
 RCLONE_SRC="/mnt/wd500gb/vzdump/dump"                # mesmo dir, visto do CT 105
 RCLONE_REMOTE="gdrive"
 REMOTE_BASE="1. vvy/vvy-server-backup/${SSD_DIR}/${CT_DEST}"
@@ -78,7 +78,7 @@ if vzdump "$VMID" \
         2>&1 | tee -a "$LOG"; then
     log "INFO" "vzdump ${VMID} concluído com sucesso."
 else
-    RC=$?
+    RC=${PIPESTATUS[0]}
     log "ERROR" "vzdump ${VMID} falhou (exit ${RC}). Abortando."
     exit "$RC"
 fi
@@ -95,7 +95,7 @@ if pct exec "$CT_RCLONE" -- rclone copy "$RCLONE_SRC/" \
         2>&1 | tee -a "$LOG"; then
     log "INFO" "Upload rclone concluído."
 else
-    RC=$?
+    RC=${PIPESTATUS[0]}
     log "ERROR" "Upload rclone falhou (exit ${RC}). Continuando para retention."
 fi
 
@@ -129,7 +129,7 @@ if pct exec "$CT_RCLONE" -- rclone delete "${RCLONE_REMOTE}:'${REMOTE_BASE}'/" \
         2>&1 | tee -a "$LOG"; then
     log "INFO" "Retention remota concluída."
 else
-    RC=$?
+    RC=${PIPESTATUS[0]}
     log "WARN" "Retention remota reportou exit ${RC} (pode não ter arquivos para deletar)."
 fi
 
