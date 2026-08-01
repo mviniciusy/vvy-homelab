@@ -31,7 +31,7 @@ BACKUP_DIR="${DRIVE_BASE}/lixeira/HD-WD-1TB/${TODAY}"
 LOGFILE="/var/log/sync_wd1tb.log"
 LOCKFILE="/tmp/sync_wd1tb.lock"
 
-RCLONE_OPTS="--verbose --transfers=4 --drive-chunk-size=64M --checkers=8 --exclude=ISOs/**"
+RCLONE_OPTS="--verbose --transfers=8 --drive-chunk-size=64M --checkers=16 --exclude=ISOs/**"
 
 # === Parsing de argumentos ===
 if [[ "${1:-}" == "--dry-run" ]]; then
