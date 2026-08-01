@@ -94,6 +94,9 @@ graph TB
 | Script | Descrição |
 |---|---|
 | [`scripts/monitoring/server-watchdog.sh`](scripts/monitoring/server-watchdog.sh) | Telemetria do servidor — memória, CPU, disco, rede. Cron a cada 1 min |
+| [`scripts/backup/sync_wd1tb.sh`](scripts/backup/sync_wd1tb.sh) | Sync HD-WD-1TB para Google Drive via rclone (cron SEG 03:00) |
+| [`scripts/backup/sync_wd500gb.sh`](scripts/backup/sync_wd500gb.sh) | Sync HD-WD500GB para Google Drive via rclone (cron TER 03:00) |
+| [`scripts/backup/clean_lixeira.sh`](scripts/backup/clean_lixeira.sh) | Limpeza da lixeira no Google Drive — retenção 14 dias (cron DOM 04:00) |
 | [`scripts/server-freeze/`](scripts/server-freeze/) | Kit de diagnóstico de travamento — watchdog, diagnóstico pós-reboot e instalador |
 | [`scripts/sync/`](scripts/sync/) | Sincronização privado → público (sync_public.py) |
 | [`scripts/monitoring/vvy-healthcheck-unified.sh`](scripts/monitoring/vvy-healthcheck-unified.sh) | Healthcheck + MCE/EDAC unificados — cronjob Hermes a cada 2h (no_agent=True, script-only) |
