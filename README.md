@@ -100,3 +100,8 @@ graph TB
 | [`scripts/server-freeze/`](scripts/server-freeze/) | Kit de diagnóstico de travamento — watchdog, diagnóstico pós-reboot e instalador |
 | [`scripts/sync/`](scripts/sync/) | Sincronização privado → público (sync_public.py) |
 | [`scripts/monitoring/vvy-healthcheck-unified.sh`](scripts/monitoring/vvy-healthcheck-unified.sh) | Healthcheck + MCE/EDAC unificados — cronjob Hermes a cada 2h (no_agent=True, script-only) |
+| [`scripts/backup/snapshot_hermes.sh`](scripts/backup/snapshot_hermes.sh) | vzdump CT 104 (hermes) diário + upload Drive | host vvy | Diário 02:30 |
+| [`scripts/backup/snapshot_semanal.sh`](scripts/backup/snapshot_semanal.sh) | vzdump CTs 101,199,200,160,161 semanal + upload Drive | host vvy | DOM 01:00 |
+| [`scripts/backup/snapshot_mensal.sh`](scripts/backup/snapshot_mensal.sh) | vzdump CTs 103,112,120 mensal + upload Drive | host vvy | 1º DOM 01:00 |
+| [`scripts/backup/backup_proxmox_config.sh`](scripts/backup/backup_proxmox_config.sh) | tar /etc/pve/ + configs Proxmox + upload Drive | host vvy | Diário 02:00 |
+| [`scripts/backup/sync_root.sh`](scripts/backup/sync_root.sh) | tar.gz 7 pastas /root + upload Drive | host vvy | QUA 03:00 |

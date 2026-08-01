@@ -28,14 +28,13 @@ SOURCE="/mnt/wd1tb"
 DEST="${DRIVE_BASE}/HD-WD-1TB/"
 TODAY=$(date +%Y-%m-%d)
 BACKUP_DIR="${DRIVE_BASE}/lixeira/HD-WD-1TB/${TODAY}"
+RCLONE_OPTS="--verbose --transfers=8 --drive-chunk-size=64M --checkers=16 --exclude=ISOs/** --exclude=WavesCentral14.17.01.23.W/**"
 LOGFILE="/var/log/sync_wd1tb.log"
 LOCKFILE="/tmp/sync_wd1tb.lock"
 
-RCLONE_OPTS="--verbose --transfers=8 --drive-chunk-size=64M --checkers=16 --exclude=ISOs/**"
 
 # === Parsing de argumentos ===
 if [[ "${1:-}" == "--dry-run" ]]; then
-    RCLONE_OPTS="${RCLONE_OPTS} --dry-run"
     echo ">>> MODO DRY-RUN (simulação) — nada será alterado" | tee -a "$LOGFILE"
 fi
 
