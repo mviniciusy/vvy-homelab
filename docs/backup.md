@@ -18,7 +18,7 @@
 | Hostname | backup-manager |
 | IP | <BACKUP_MANAGER_IP> |
 | CPU | 2 cores |
-| RAM | 512 MB + 256 swap |
+| RAM | 8192 MiB + 512 MiB swap (OOM em 512 MiB com rclone --transfers=4) |
 | Storage | nvme128, rootfs 4GB |
 | OS | Debian 12 (Bookworm) |
 | Unprivileged | sim (nesting=1) |
@@ -73,14 +73,15 @@ Scripts executados no **CT 105** (rclone sync dos HDs):
 
 ### sync_wd1tb.sh (CT 105)
 
-Sync espelhado do HD-WD-1TB para Google Drive com lixeira:
-- Origem: /mnt/wd1tb (NTFS)
-- Destino: gdrive:"1. vvy/vvy-server-backup"/HD-WD-1TB/
+Sync espelhado da pasta "1. Geral" do HD-WD-1TB para Google Drive com lixeira:
+- Origem: /mnt/wd1tb/1. Geral (NTFS)
+- Destino: gdrive:"1. vvy/vvy-server-backup"/HD-WD-1TB/1. Geral/
 - --backup-dir: move arquivos removidos para lixeira com timestamp
-- Flags: --verbose --transfers=4 --drive-chunk-size=64M --checkers=8
+- Flags: --verbose --transfers=8 --drive-chunk-size=64M --checkers=16
 - --dry-run disponível para preview
-- Proteções: flock, mountpoint check, log em /var/log/sync_wd1tb.log
+- Proteções: flock, mountpoint check (verifica /mnt/wd1tb + se "1. Geral" existe), log em /var/log/sync_wd1tb.log
 - Cron: SEG 03:00
+- Nota: Antes sincronizava o HD inteiro; alterado para só "1. Geral" em Ago/2026 (ISOs/WavesCentral fora do escopo)
 
 ### sync_wd500gb.sh (CT 105)
 
@@ -163,17 +164,55 @@ Backup semanal de 7 pastas de /root:
 
 ```
 1. vvy/vvy-server-backup/
-├── HD-WD-1TB/           (mp1: dados do HD WD 1TB — sync segunda)
-├── HD-WD500GB/          (mp0: dados do HD WD 500GB — sync terça)
-├── SSD-Snapshots/       (vzdump de CTs — sync_snapshots.sh)
-├── Proxmox-Config/      (tar /etc/pve/ diário — backup_proxmox_config.sh)
-├── Root-Backup/          (tar.gz /root semanal — sync_root.sh)
-└── lixeira/             (arquivos removidos pelo sync — retenção 14 dias)
+├── HD-WD-1TB/                (mp1: pasta "1. Geral" do HD WD 1TB — sync segunda)
+│   └── 1. Geral/
+├── HD-WD500GB/               (mp0: dados do HD WD 500GB — sync terça)
+├── SSD-NVMe-128GB/           (vzdump de CTs/VMs no NVMe — snapshot_hermes.sh, snapshot_semanal.sh)
+│   ├── CT-104-hermes-agent/
+│   ├── CT-199-minecraft/
+│   └── VM-200-debian/
+├── SSD-SATA-128GB/           (vzdump de CTs no SATA — snapshot_semanal.sh, snapshot_mensal.sh)
+│   ├── CT-101-pihole/
+│   ├── CT-160-zabbix/
+│   ├── CT-161-grafana/
+│   ├── CT-103-n8n/
+│   ├── CT-112-handbrake/
+│   └── CT-120-qbit-vpn/
+├── Proxmox-Config/           (tar /etc/pve/ diário — backup_proxmox_config.sh)
+├── Host-Root/                (tar.gz /root semanal — sync_root.sh)
+└── lixeira/                  (arquivos removidos pelo sync — retenção 14 dias)
     ├── HD-WD-1TB/YYYY-MM-DD/
     └── HD-WD500GB/YYYY-MM-DD/
 ```
 
 > HD-SEA1TB nao entra no backup nem e montado no CT 105.
+> VM 200 disco de dados (scsi1, 100 GB HD-WD500GB) tem backup=0 — vazio, sera usado depois.
+
+
+
+## Pitfalls
+
+### pct exec não preserva aspas em paths com espaços
+
+O `pct exec 105 -- rclone copy "$src" "gdrive:1. vvy/path/"` **NÃO** funciona — o `pct exec` (via `lxc-attach`) re-parseia os argumentos via shell do container e quebra o path no espaço, criando pastas `'1. vvy` na raiz do Drive.
+
+**Solução:** usar `bash -c` com argumentos posicionais ($1, $2, ...):
+
+```bash
+pct exec 105 -- bash -c 'rclone copy "$1/" "$2"' _ "$src" "gdrive:1. vvy/path/"
+```
+
+O `_` ocupa `$0` (nome do shell), e os valores reais ficam em `$1` e `$2` — preservando os espaços sem aspas literais no path.
+
+Validado em Ago/2026. Todos os scripts de snapshot, config e sync_root foram corrigidos para este padrão.
+
+### DUMP_DIR_BASE com path incompleto
+
+Os scripts de snapshot usavam `/mnt/pve/HD-WD500GB/vzdump/dump` mas o path real é `/mnt/pve/HD-WD500GB/Dados-WD500GB/vzdump/dump` (o storage `HD-WD500GB` monta em `/mnt/pve/HD-WD500GB` e os dados estão na subpasta `Dados-WD500GB/`). Sem o `Dados-WD500GB/` no path, a retention local não encontra os arquivos e não remove snapshots antigos. Corrigido em Ago/2026.
+
+### VM 200 backup=0 no disco de dados
+
+O VM 200 (debian) tem 2 discos: scsi0 (32 GB NVMe, rootfs) e scsi1 (100 GB HD-WD500GB, montado em /mnt/dados). O disco de 100 GB estava vazio (só lost+found) e era desnecessário no vzdump — o snapshot passou de 132 GB para 6.4 GB. Configurado `backup=0` no scsi1 via `qm set 200 -scsi1 HD-WD500GB:200/vm-200-disk-0.raw,backup=0,size=100G`. Para reverter: remover `,backup=0`.
 
 ## Plano de Backup
 
