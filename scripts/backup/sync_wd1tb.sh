@@ -8,6 +8,9 @@
 #   rclone sync do HD-WD-1TB (NTFS, /mnt/wd1tb) -> gdrive:"1. vvy/vvy-server-backup"/HD-WD-1TB/
 #   Arquivos removidos localmente -> movidos para lixeira com timestamp (NÃO deletados)
 #
+# Exclusões:
+#   ISOs/ — imagens ISO recuperáveis (Windows, Kali, Proxmox), ~10 GB
+#
 # Retenção da lixeira: 14 dias (ver clean_lixeira.sh)
 #
 # Proteções:
@@ -28,7 +31,7 @@ BACKUP_DIR="${DRIVE_BASE}/lixeira/HD-WD-1TB/${TODAY}"
 LOGFILE="/var/log/sync_wd1tb.log"
 LOCKFILE="/tmp/sync_wd1tb.lock"
 
-RCLONE_OPTS="--verbose --transfers=4 --drive-chunk-size=64M --checkers=8"
+RCLONE_OPTS="--verbose --transfers=4 --drive-chunk-size=64M --checkers=8 --exclude=ISOs/**"
 
 # === Parsing de argumentos ===
 if [[ "${1:-}" == "--dry-run" ]]; then
