@@ -21,3 +21,5 @@ id_rsa
 id_rsa.pub
 id_ed25519_github
 id_ed25519_github.pub
+
+.obsidian

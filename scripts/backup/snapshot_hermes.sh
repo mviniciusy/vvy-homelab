@@ -4,7 +4,7 @@
 # Fluxo:  vzdump 104 → upload rclone (via CT 105) → retention local (2) + remota (7 dias)
 #
 # Cron:    DIÁRIO 02:30   (0 30 2 * * * root /root/scripts/backup/snapshot_hermes.sh)
-# Storage: backup-dump    (dir:/mnt/pve/HD-WD500GB/Dados-WD500GB/vzdump, content=backup)
+# Storage: backup-dump    (dir:/mnt/pve/HD-WD500GB/vzdump, content=backup)
 # Drive:   1. vvy/vvy-server-backup/SSD-NVMe-128GB/CT-104-hermes-agent/
 #
 set -euo pipefail
@@ -19,7 +19,7 @@ SSD_TIPO="NVMe"                          # NVMe | SATA
 SSD_DIR="SSD-NVMe-128GB"
 CT_DEST="CT-${VMID}-${HOSTNAME}"
 
-DUMP_DIR="/mnt/pve/HD-WD500GB/Dados-WD500GB/vzdump/dump"           # caminho no host vvy
+DUMP_DIR="/mnt/pve/HD-WD500GB/Dados-WD500GB/vzdump/dump" # caminho no host vvy
 RCLONE_SRC="/mnt/wd500gb/vzdump/dump"                # mesmo dir, visto do CT 105
 RCLONE_REMOTE="gdrive"
 REMOTE_BASE="1. vvy/vvy-server-backup/${SSD_DIR}/${CT_DEST}"
@@ -56,9 +56,22 @@ log "INFO" "==== Início ${SCRIPT_NAME} (CT ${VMID} ${HOSTNAME}) ===="
 # ============================================================================
 # 1. Validação do storage backup-dump
 # ============================================================================
-log "INFO" "Validando storage backup-dump..."
-if ! pvesm status 2>/dev/null | awk '{print $1}' | grep -qx "backup-dump"; then
-    log "ERROR" "Storage backup-dump não encontrado. Abortando."
+log "INFO" "Validando storage backup-dump (até 8 tentativas × 20s = 160s)..."
+STORAGE_OK=0
+for attempt in 1 2 3 4 5 6 7 8; do
+    # pvesm list é mais resiliente que pvesm status|awk|grep sob concorrência
+    # pmxcfs (corosync/pve-ha-crm inactive em single-node sem HA).
+    # Primary: pvesm list  /  Fallback: pvesm status | awk | grep -qx
+    if pvesm list backup-dump >/dev/null 2>&1 || pvesm status 2>/dev/null | awk '{print $1}' | grep -qx "backup-dump"; then
+        STORAGE_OK=1
+        log "INFO" "Storage backup-dump OK (tentativa ${attempt}/8)."
+        break
+    fi
+    log "WARN" "Tentativa ${attempt}/8: storage não disponível. Aguardando 20s..."
+    sleep 20
+done
+if [ $STORAGE_OK -ne 1 ]; then
+    log "ERROR" "Storage backup-dump não encontrado após 8 tentativas (160s). Abortando."
     exit 1
 fi
 log "INFO" "Storage backup-dump OK."
@@ -78,7 +91,7 @@ if vzdump "$VMID" \
         2>&1 | tee -a "$LOG"; then
     log "INFO" "vzdump ${VMID} concluído com sucesso."
 else
-    RC=${PIPESTATUS[0]}
+    RC=$?
     log "ERROR" "vzdump ${VMID} falhou (exit ${RC}). Abortando."
     exit "$RC"
 fi
@@ -87,15 +100,18 @@ fi
 # 3. Upload para Google Drive via rclone no CT 105
 # ============================================================================
 log "INFO" "Upload rclone: ${RCLONE_SRC} → ${RCLONE_REMOTE}: '${REMOTE_BASE}/'"
-if pct exec "$CT_RCLONE" -- rclone copy "$RCLONE_SRC/" \
-        "${RCLONE_REMOTE}:'${REMOTE_BASE}/'" \
-        --include "vzdump-*${VMID}*" \
+# pct exec não preserva aspas em paths com espaços; usar bash -c com args posicionais
+if pct exec "$CT_RCLONE" -- bash -c '
+        rclone copy "$1/" "$2" \
+        --include "vzdump-*$3*" \
+        --verbose \
         --transfers=4 \
-        --drive-chunk-size=64M \
+        --drive-chunk-size=64M
+    ' _ "$RCLONE_SRC" "${RCLONE_REMOTE}:${REMOTE_BASE}/" "$VMID" \
         2>&1 | tee -a "$LOG"; then
     log "INFO" "Upload rclone concluído."
 else
-    RC=${PIPESTATUS[0]}
+    RC=$?
     log "ERROR" "Upload rclone falhou (exit ${RC}). Continuando para retention."
 fi
 
@@ -123,13 +139,16 @@ fi
 # 5. Retention remota — deletar arquivos com 7+ dias no Drive
 # ============================================================================
 log "INFO" "Retention remota: deletar arquivos com ${RET_REMOTE_DAYS}+ dias em '${REMOTE_BASE}/'"
-if pct exec "$CT_RCLONE" -- rclone delete "${RCLONE_REMOTE}:'${REMOTE_BASE}'/" \
-        --min-age "${RET_REMOTE_DAYS}d" \
+if pct exec "$CT_RCLONE" -- bash -c '
+        rclone delete "$1" \
+        --min-age "$2d" \
         --rmdirs \
+        --verbose
+    ' _ "${RCLONE_REMOTE}:${REMOTE_BASE}/" "$RET_REMOTE_DAYS" \
         2>&1 | tee -a "$LOG"; then
     log "INFO" "Retention remota concluída."
 else
-    RC=${PIPESTATUS[0]}
+    RC=$?
     log "WARN" "Retention remota reportou exit ${RC} (pode não ter arquivos para deletar)."
 fi
 

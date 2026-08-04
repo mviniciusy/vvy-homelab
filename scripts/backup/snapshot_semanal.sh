@@ -4,7 +4,7 @@
 # Fluxo para cada vmid: vzdump <vmid> → upload rclone (via CT 105) → retention local (1) + remota (14d)
 #
 # Cron:    DOM 01:00   (0 0 1 * * 0 root /root/scripts/backup/snapshot_semanal.sh)
-# Storage: backup-dump (dir:/mnt/pve/HD-WD500GB/Dados-WD500GB/vzdump, content=backup)
+# Storage: backup-dump (dir:/mnt/pve/HD-WD500GB/vzdump, content=backup)
 # Drive:   1. vvy/vvy-server-backup/SSD-{NVMe|SATA}-128GB/CT-<id>-<hostname>/
 #
 #   NVMe:  CT-199-minecraft, VM-200-debian
@@ -18,7 +18,7 @@ set -euo pipefail
 SCRIPT_NAME="snapshot_semanal"
 CT_RCLONE=105                            # CT backup-manager (rclone + gdrive:)
 
-DUMP_DIR_BASE="/mnt/pve/HD-WD500GB/Dados-WD500GB/vzdump/dump"     # caminho no host vvy
+DUMP_DIR_BASE="/mnt/pve/HD-WD500GB/Dados-WD500GB/vzdump/dump" # caminho no host vvy
 RCLONE_SRC_BASE="/mnt/wd500gb/vzdump/dump"          # mesmo dir, visto do CT 105
 RCLONE_REMOTE="gdrive"
 REMOTE_BASE_ROOT="1. vvy/vvy-server-backup"
@@ -65,9 +65,19 @@ log "INFO" "==== Início ${SCRIPT_NAME} ===="
 # ============================================================================
 # 1. Validação do storage backup-dump
 # ============================================================================
-log "INFO" "Validando storage backup-dump..."
-if ! pvesm status 2>/dev/null | awk '{print $1}' | grep -qx "backup-dump"; then
-    log "ERROR" "Storage backup-dump não encontrado. Abortando."
+log "INFO" "Validando storage backup-dump (até 3 tentativas)..."
+STORAGE_OK=0
+for attempt in 1 2 3; do
+    if pvesm status 2>/dev/null | awk '{print $1}' | grep -qx "backup-dump"; then
+        STORAGE_OK=1
+        log "INFO" "Storage backup-dump OK (tentativa ${attempt})."
+        break
+    fi
+    log "WARN" "Tentativa ${attempt}/3: storage não disponível. Aguardando 10s..."
+    sleep 10
+done
+if [ $STORAGE_OK -ne 1 ]; then
+    log "ERROR" "Storage backup-dump não encontrado após 3 tentativas. Abortando."
     exit 1
 fi
 log "INFO" "Storage backup-dump OK."
@@ -98,7 +108,7 @@ for entry in "${ENTRIES[@]}"; do
             2>&1 | tee -a "$LOG"; then
         log "INFO" "vzdump ${VMID} OK."
     else
-        RC=${PIPESTATUS[0]}
+        RC=$?
         log "ERROR" "vzdump ${VMID} falhou (exit ${RC}). Pulando para próximo."
         TOTAL_FAIL=$((TOTAL_FAIL + 1))
         continue
@@ -106,15 +116,17 @@ for entry in "${ENTRIES[@]}"; do
 
     # --- 3. Upload rclone (via CT 105) ------------------------------------
     log "INFO" "Upload rclone: ${RCLONE_SRC} → '${REMOTE_PATH}/'"
-    if pct exec "$CT_RCLONE" -- rclone copy "${RCLONE_SRC}/" \
-            "${RCLONE_REMOTE}:'${REMOTE_PATH}/'" \
-            --include "vzdump-*${VMID}*" \
+    # pct exec não preserva aspas em paths com espaços; usar bash -c com args posicionais
+    if pct exec "$CT_RCLONE" -- bash -c '
+            rclone copy "$1/" "$2" \
+            --include "vzdump-*$3*" \
             --transfers=4 \
-            --drive-chunk-size=64M \
+            --drive-chunk-size=64M
+        ' _ "$RCLONE_SRC" "${RCLONE_REMOTE}:${REMOTE_PATH}/" "$VMID" \
             2>&1 | tee -a "$LOG"; then
         log "INFO" "Upload ${CT_DEST} OK."
     else
-        RC=${PIPESTATUS[0]}
+        RC=$?
         log "ERROR" "Upload ${CT_DEST} falhou (exit ${RC}). Continuando para retention."
     fi
 
@@ -132,13 +144,15 @@ for entry in "${ENTRIES[@]}"; do
 
     # --- 5. Retention remota — deletar arquivos 14+ dias ------------------
     log "INFO" "Retention remota ${CT_DEST}: deletar ${RET_REMOTE_DAYS}+ dias."
-    if pct exec "$CT_RCLONE" -- rclone delete "${RCLONE_REMOTE}:'${REMOTE_PATH}'/" \
-            --min-age "${RET_REMOTE_DAYS}d" \
-            --rmdirs \
+    if pct exec "$CT_RCLONE" -- bash -c '
+            rclone delete "$1" \
+            --min-age "$2d" \
+            --rmdirs
+        ' _ "${RCLONE_REMOTE}:${REMOTE_PATH}/" "$RET_REMOTE_DAYS" \
             2>&1 | tee -a "$LOG"; then
         log "INFO" "Retention remota ${CT_DEST} OK."
     else
-        RC=${PIPESTATUS[0]}
+        RC=$?
         log "WARN" "Retention remota ${CT_DEST}: exit ${RC} (sem arquivos a deletar?)."
     fi
 

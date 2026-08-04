@@ -10,7 +10,7 @@
 #
 # Fluxo:
 #   1. Cria tar.gz no host (necessario: /etc/pve/ so existe no host)
-#   2. Copia o tar para /mnt/pve/HD-WD500GB/Dados-WD500GB/vzdump/dump/ (storage do backup-dump)
+#   2. Copia o tar para /mnt/pve/HD-WD500GB/vzdump/dump/ (storage do backup-dump)
 #      que e montado no CT 105 como /mnt/wd500gb/vzdump/dump/
 #   3. Upload para Google Drive via rclone rodando no CT 105
 #   4. Retention: 7 dias local, 30 dias no Drive
@@ -35,7 +35,7 @@ TAR_NAME="etc-pve-${DATE}.tar.gz"
 STORAGE_DIR="/mnt/pve/HD-WD500GB/Dados-WD500GB/vzdump/dump"          # no host (storage HD-WD500GB)
 CT_STORAGE_DIR="/mnt/wd500gb/vzdump/dump"             # mesmo ponto, visto do CT 105
 GDRIVE_REMOTE="gdrive"
-GDRIVE_PATH="'1. vvy/vvy-server-backup/Proxmox-Config/'"
+GDRIVE_PATH="1. vvy/vvy-server-backup/Proxmox-Config/"
 
 # Lockfile e log
 LOCKFILE="/tmp/backup_proxmox_config.lock"
@@ -147,11 +147,10 @@ log "  copiado para $STORAGE_DIR/${TAR_NAME}"
 # 5. Upload para Google Drive via rclone no CT 105
 # ----------------------------------------------------------------------------
 log "Upload para Google Drive via rclone (CT 105)..."
-# O CT 105 ve o storage em $CT_STORAGE_DIR (mp0=/mnt/wd500gb).
-# GDRIVE_PATH ja vem com as aspas simples embutidas (espaco no nome da pasta).
-if ! pct exec "$CT_ID" -- rclone copy \
-    "${CT_STORAGE_DIR}/${TAR_NAME}" \
-    "${GDRIVE_REMOTE}:${GDRIVE_PATH}"; then
+# pct exec não preserva aspas em paths com espaços; usar bash -c com args posicionais
+# --verbose + 2>&1 para capturar stderr do rclone no log (sem isso, erro real é perdido)
+if ! pct exec "$CT_ID" -- bash -c 'rclone copy "$1" "$2" --verbose 2>&1' \
+    _ "${CT_STORAGE_DIR}/${TAR_NAME}" "${GDRIVE_REMOTE}:${GDRIVE_PATH}" | tee -a "$LOG"; then
     err "Falha no upload rclone para ${GDRIVE_REMOTE}:${GDRIVE_PATH}"
     exit 5
 fi
@@ -171,10 +170,8 @@ fi
 # 7. Retention remota (30 dias no Drive)
 # ----------------------------------------------------------------------------
 log "Retention remota: removendo arquivos com mais de ${REMOTE_RETENTION_DAYS}d no Drive"
-if ! pct exec "$CT_ID" -- rclone delete \
-    "${GDRIVE_REMOTE}:${GDRIVE_PATH}" \
-    --min-age "${REMOTE_RETENTION_DAYS}d" \
-    --rmdirs; then
+if ! pct exec "$CT_ID" -- bash -c 'rclone delete "$1" --min-age "$2d" --rmdirs --verbose 2>&1' \
+    _ "${GDRIVE_REMOTE}:${GDRIVE_PATH}" "$REMOTE_RETENTION_DAYS" | tee -a "$LOG"; then
     log "AVISO: falha na retention remota (rclone delete --min-age)"
 else
     log "  retention remota aplicada"
