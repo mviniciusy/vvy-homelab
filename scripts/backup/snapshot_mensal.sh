@@ -11,6 +11,7 @@
 #   SATA:  CT-112-handbrake, CT-120-qbit-vpn
 #
 set -euo pipefail
+export PATH=/usr/sbin:/usr/bin:/sbin:/bin
 
 # ============================================================================
 # Configuração

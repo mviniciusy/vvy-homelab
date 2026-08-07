@@ -14,6 +14,7 @@
 # ============================================================================
 
 set -euo pipefail
+export PATH=/usr/sbin:/usr/bin:/sbin:/bin
 
 # --- Configuração ---
 LOG="/var/log/sync_root.log"
@@ -183,10 +184,11 @@ log_info "Iniciando upload para Google Drive..."
 log_info "Origem (no CT 105): /mnt/wd500gb/vvy-server-backup/staging/"
 log_info "Destino: $REMOTE_DST"
 
-if pct exec "$CT_ID" -- rclone copy \
+if pct exec "$CT_ID" -- bash -c '
+        rclone copy \
         /mnt/wd500gb/vvy-server-backup/staging/ \
-        "$REMOTE_DST" \
-        --include 'root-backup-*.tar.gz' \
+        "$1" \
+        --include "root-backup-*.tar.gz" \
         --transfers=2 \
         --checkers=4 \
         --contimeout=60s \
@@ -194,7 +196,8 @@ if pct exec "$CT_ID" -- rclone copy \
         --retries=3 \
         --retries-sleep=10s \
         --log-file=/tmp/rclone-root-backup.log \
-        --log-level=INFO; then
+        --log-level=INFO
+    ' _ "$REMOTE_DST"; then
     log_ok "Upload concluído."
 else
     log_err "Falha no upload via rclone (exit=$?). Verifique /tmp/rclone-root-backup.log no CT $CT_ID."
@@ -207,11 +210,12 @@ rm -f "${STAGING_DIR}"/root-backup-*.tar.gz 2>/dev/null || true
 
 # --- Retention no destino remoto (30 dias) ---
 log_info "Aplicando retention: removendo arquivos com > ${RETENTION_DAYS} dias no destino..."
-if pct exec "$CT_ID" -- rclone delete \
-        "$REMOTE_DST" \
-        --min-age "${RETENTION_DAYS}d" \
+if pct exec "$CT_ID" -- bash -c '
+        rclone delete "$1" \
+        --min-age "$2d" \
         --rmdirs \
-        --verbose 2>&1 | tee -a "$LOG"; then
+        --verbose
+    ' _ "$REMOTE_DST" "$RETENTION_DAYS" 2>&1 | tee -a "$LOG"; then
     log_ok "Retention aplicada."
 else
     log_warn "Retention falhou (exit=$?) — não aborta, apenas avisa."

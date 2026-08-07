@@ -8,6 +8,7 @@
 # Drive:   1. vvy/vvy-server-backup/SSD-NVMe-128GB/CT-104-hermes-agent/
 #
 set -euo pipefail
+export PATH=/usr/sbin:/usr/bin:/sbin:/bin
 
 # ============================================================================
 # Configuração

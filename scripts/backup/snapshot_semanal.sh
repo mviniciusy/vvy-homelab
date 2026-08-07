@@ -11,6 +11,7 @@
 #   SATA:  CT-101-pihole, CT-160-zabbix, CT-161-grafana
 #
 set -euo pipefail
+export PATH=/usr/sbin:/usr/bin:/sbin:/bin
 
 # ============================================================================
 # Configuração
