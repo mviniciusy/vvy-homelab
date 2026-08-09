@@ -53,7 +53,7 @@
 | Projeto Google Cloud | vvy-backup |
 | OAuth Client ID | rclone-vvy (Desktop app) |
 | Escopo | .../auth/drive (read/write/delete) |
-| App em modo teste | sim (nao publicado, uso pessoal) |
+| App publicado | sim (publicado 08/08/2026 — refresh token nao expira mais) |
 | Pasta base no Drive | 1. vvy/vvy-server-backup/ |
 | Token | /root/.config/rclone/rclone.conf (CT 105) |
 | credentials.json | /root/backup-manager/config/credentials.json |
@@ -117,7 +117,7 @@ Scripts executados no **host vvy** (vzdump + tar + sync para CT 105):
 vzdump do CT 104 (Hermes Agent) diario:
 - Destino: storage backup-dump (/mnt/pve/HD-WD500GB/Dados-WD500GB/vzdump)
 - Conteudo: CT 104 (Hermes Agent completo)
-- Cron: diario 02:30
+- Cron: diario 02:45
 - Retention local: 2 snapshots (removidos pelo vzdump --prune-backups)
 - Retention Drive (rclone sync via sync_snapshots.sh): 7 dias
 - Log: /var/log/snapshot_hermes.log
@@ -136,7 +136,7 @@ vzdump semanal dos CTs principais:
 vzdump mensal dos CTs de baixa frequencia:
 - Destino: storage backup-dump (/mnt/pve/HD-WD500GB/Dados-WD500GB/vzdump)
 - Conteudo: CTs 103, 112, 120
-- Cron: 1º DOM do mes 01:00
+- Cron: 2º domingo (dias 8-14) 01:00
 - Retention local: 1 snapshot por CT
 - Retention Drive: 30 dias
 
@@ -157,7 +157,7 @@ Backup semanal de 7 pastas de /root:
 - Destino local: /mnt/pve/HD-WD500GB/Dados-WD500GB/root-backup/root-YYYY-MM-DD.tar.gz
 - Cron: QUA 03:00 (semanal, quartas)
 - Retention local: remove arquivos com mais de 30 dias
-- Retention Drive (rclone sync): 30 dias → gdrive:"1. vvy/vvy-server-backup"/Root-Backup/
+- Retention Drive (rclone sync): 30 dias → gdrive:"1. vvy/vvy-server-backup"/Host-Root/
 - Log: /var/log/sync_root.log
 
 ## Estrutura no Google Drive
@@ -213,6 +213,18 @@ Os scripts de snapshot usavam `/mnt/pve/HD-WD500GB/vzdump/dump` mas o path real 
 ### VM 200 backup=0 no disco de dados
 
 O VM 200 (debian) tem 2 discos: scsi0 (32 GB NVMe, rootfs) e scsi1 (100 GB HD-WD500GB, montado em /mnt/dados). O disco de 100 GB estava vazio (só lost+found) e era desnecessário no vzdump — o snapshot passou de 132 GB para 6.4 GB. Configurado `backup=0` no scsi1 via `qm set 200 -scsi1 HD-WD500GB:200/vm-200-disk-0.raw,backup=0,size=100G`. Para reverter: remover `,backup=0`.
+
+### OAuth do Google Drive expira em 7 dias (modo teste) — RESOLVIDO
+
+O app `vvy-backup` no Google Cloud Console estava em "modo teste" (nao publicado). O Google revoga refresh tokens de apps de teste apos 7 dias sem uso. Sintoma: `invalid_grant` / "Token has been expired or revoked". O token OAuth foi revogado em 05/08/2026 (apos 7 dias sem uso), causando falha em todos os uploads de 05-07/08. Reautorizado em 08/08/2026 e app publicado no mesmo dia — refresh token nao expira mais.
+
+### Crontab do root perdido (07/08/2026) — RESOLVIDO
+
+O `/var/spool/cron/crontabs/root` foi reinstalado vazio em 07/08 12:45:05 — apenas o header, sem nenhum job. Os 5 cronjobs de backup foram perdidos. Restaturado em 08/08 com os 5 jobs + `PATH=/usr/sbin:/usr/bin:/sbin:/bin` no header. O `backup_proxmox_config.sh` coleta o crontab para /tmp/ mas nao inclui no tar.gz — o arquivo em /tmp e limpo pelo sistema. Pendencia: adicionar crontab ao tar.gz do backup_proxmox_config.sh.
+
+### PATH do cron (corrigido 07/08/2026)
+
+O `PATH` do cron e `/usr/bin:/bin`, mas `pvesm` e `pct` estao em `/usr/sbin`. Os 5 scripts de backup do host falhavam silenciosamente (exit 127 mascarado por `2>/dev/null`). Correcao: `export PATH=/usr/sbin:/usr/bin:/sbin:/bin` apos `set -euo pipefail` em todos os 5 scripts.
 
 ## Plano de Backup
 
