@@ -223,7 +223,7 @@ Os scripts de snapshot usavam `find -name "vzdump-*${VMID}*"` na retention local
 
 ### OAuth do Google Drive expira em 7 dias (modo teste) — RESOLVIDO
 
-O app `vvy-backup` no Google Cloud Console estava em "modo teste" (nao publicado). O Google revoga refresh tokens de apps de teste apos 7 dias sem uso. Sintoma: `invalid_grant` / "Token has been expired or revoked". O token OAuth foi revogado em 05/08/2026 (apos 7 dias sem uso), causando falha em todos os uploads de 05-07/08. Reautorizado em 08/08/2026. **ATUALIZACAO 17/08/2026**: token morreu DE NOVO (ultimo sucesso 15/08 02:51; expiry no rclone.conf = 15/08 03:00, exatamente 7 dias apos a reautorizacao) — padrao identico ao modo teste. Provavelmente o app AINDA nao esta publicado de verdade. Pendente: verificar OAuth consent screen (In production) no Google Cloud Console e reautorizar.
+O app `vvy-backup` no Google Cloud Console estava em "modo teste" (nao publicado). O Google revoga refresh tokens de apps de teste apos 7 dias sem uso. Sintoma: `invalid_grant` / "Token has been expired or revoked". O token OAuth foi revogado em 05/08/2026 (apos 7 dias sem uso), causando falha em todos os uploads de 05-07/08. Reautorizado em 08/08/2026. **ATUALIZACAO 17/08/2026 (19h)**: token reautorizado com sucesso via flow OOB (redirect localhost:53682). `refresh_token_expires_in` AUSENTE — token sem expiracao por tempo. `rclone lsd gdrive:` OK. Uploads pendentes reenviados (config 16-17/08, hermes 17/08). **ATENCAO**: nao reautorizar novamente sem necessidade — cada reautorizacao gera um novo token e Google revoga silenciosamente os mais antigos (~50 por cliente).
 
 ### Crontab do root perdido (07/08/2026) — RESOLVIDO
 
