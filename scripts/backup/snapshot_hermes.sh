@@ -27,8 +27,8 @@ REMOTE_BASE="1. vvy/vvy-server-backup/${SSD_DIR}/${CT_DEST}"
 
 CT_RCLONE=105                            # CT backup-manager (rclone + gdrive:)
 
-RET_LOCAL_KEEP=2                         # manter 2 arquivos locais mais recentes
-RET_REMOTE_DAYS=7                         # deletar do Drive arquivos com 7+ dias
+RET_LOCAL_KEEP=3                         # manter 3 backups locais mais recentes
+RET_REMOTE_KEEP=3                        # manter 3 backups mais recentes no Drive
 
 LOG="/var/log/${SCRIPT_NAME}.log"
 LOCK="/tmp/${SCRIPT_NAME}.lock"
@@ -117,40 +117,38 @@ else
 fi
 
 # ============================================================================
-# 4. Retention local — manter N arquivos mais recentes (por contagem, não mtime)
+# 4. Retention local — manter N backups mais recentes (por contagem, não mtime)
+#    Somente arquivos de backup (.tar.zst/.vma.zst) contam — .log NÃO ocupa slot.
+#    Remove também o log correspondente a backups podados.
 # ============================================================================
-log "INFO" "Retention local: manter ${RET_LOCAL_KEEP} arquivo(s) mais recente(s)."
-# Lista arquivos deste CT ordenados por tempo de modificação (novos primeiro),
-# pula os N primeiros e remove o resto.
-mapfile -t OLD_FILES < <(find "$DUMP_DIR" -maxdepth 1 -type f -name "vzdump-*${VMID}*" -printf '%T@\t%p\n' \
+log "INFO" "Retention local: manter ${RET_LOCAL_KEEP} backup(s) mais recente(s)."
+mapfile -t OLD_FILES < <(find "$DUMP_DIR" -maxdepth 1 -type f \( -name "vzdump-*${VMID}*.tar.zst" -o -name "vzdump-*${VMID}*.vma.zst" \) -printf '%T@\t%p\n' \
     | sort -rn \
     | tail -n +"$((RET_LOCAL_KEEP + 1))" \
     | cut -f2-)
 
 if [ "${#OLD_FILES[@]}" -gt 0 ]; then
-    log "INFO" "Removendo ${#OLD_FILES[@]} arquivo(s) local(is) antigo(s):"
+    log "INFO" "Removendo ${#OLD_FILES[@]} backup(s) local(is) antigo(s):"
     for f in "${OLD_FILES[@]}"; do
         rm -f -- "$f" && log "INFO" "  removido: $(basename "$f")"
+        base="${f%.*}"; base="${base%.*}"
+        rm -f -- "${base}.log" 2>/dev/null || true
     done
 else
-    log "INFO" "Nenhum arquivo local a remover (≤ ${RET_LOCAL_KEEP} arquivo(s))."
+    log "INFO" "Nenhum backup local a remover (≤ ${RET_LOCAL_KEEP} backup(s))."
 fi
 
 # ============================================================================
-# 5. Retention remota — deletar arquivos com 7+ dias no Drive
+# 5. Retention remota — manter K backups mais recentes no Drive
 # ============================================================================
-log "INFO" "Retention remota: deletar arquivos com ${RET_REMOTE_DAYS}+ dias em '${REMOTE_BASE}/'"
-if pct exec "$CT_RCLONE" -- bash -c '
-        rclone delete "$1" \
-        --min-age "$2d" \
-        --rmdirs \
-        --verbose
-    ' _ "${RCLONE_REMOTE}:${REMOTE_BASE}/" "$RET_REMOTE_DAYS" \
-        2>&1 | tee -a "$LOG"; then
+log "INFO" "Retention remota: manter ${RET_REMOTE_KEEP} backup(s) mais recente(s) em '${REMOTE_BASE}/'"
+if pct exec "$CT_RCLONE" -- bash -c '/root/backup-manager/app/rclone_keep.sh "$1" "$2" 2>&1' \
+    _ "${RCLONE_REMOTE}:${REMOTE_BASE}/" "$RET_REMOTE_KEEP" \
+    2>&1 | tee -a "$LOG"; then
     log "INFO" "Retention remota concluída."
 else
     RC=$?
-    log "WARN" "Retention remota reportou exit ${RC} (pode não ter arquivos para deletar)."
+    log "WARN" "Retention remota reportou exit ${RC}."
 fi
 
 log "INFO" "==== Fim ${SCRIPT_NAME} (CT ${VMID}) ===="

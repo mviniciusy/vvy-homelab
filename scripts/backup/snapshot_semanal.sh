@@ -24,8 +24,8 @@ RCLONE_SRC_BASE="/mnt/wd500gb/vzdump/dump"          # mesmo dir, visto do CT 105
 RCLONE_REMOTE="gdrive"
 REMOTE_BASE_ROOT="1. vvy/vvy-server-backup"
 
-RET_LOCAL_KEEP=1                         # manter 1 arquivo local mais recente
-RET_REMOTE_DAYS=14                        # deletar do Drive arquivos com 14+ dias (≈2 semanais)
+RET_LOCAL_KEEP=3                         # manter 3 backups locais mais recentes
+RET_REMOTE_KEEP=3                        # manter 3 backups mais recentes no Drive
 
 LOG="/var/log/${SCRIPT_NAME}.log"
 LOCK="/tmp/${SCRIPT_NAME}.lock"
@@ -131,30 +131,31 @@ for entry in "${ENTRIES[@]}"; do
         log "ERROR" "Upload ${CT_DEST} falhou (exit ${RC}). Continuando para retention."
     fi
 
-    # --- 4. Retention local — manter N mais recentes -----------------------
-    log "INFO" "Retention local ${CT_DEST}: manter ${RET_LOCAL_KEEP} arquivo(s)."
-    mapfile -t OLD_FILES < <(find "$DUMP_DIR" -maxdepth 1 -type f -name "vzdump-*${VMID}*" \
+    # --- 4. Retention local — manter N backups mais recentes -----------------
+    #    Somente arquivos de backup (.tar.zst/.vma.zst) contam — .log NÃO ocupa
+    #    slot. Remove também o log correspondente a backups podados.
+    log "INFO" "Retention local ${CT_DEST}: manter ${RET_LOCAL_KEEP} backup(s)."
+    mapfile -t OLD_FILES < <(find "$DUMP_DIR" -maxdepth 1 -type f \( -name "vzdump-*${VMID}*.tar.zst" -o -name "vzdump-*${VMID}*.vma.zst" \) \
         -printf '%T@\t%p\n' | sort -rn | tail -n +"$((RET_LOCAL_KEEP + 1))" | cut -f2-)
     if [ "${#OLD_FILES[@]}" -gt 0 ]; then
         for f in "${OLD_FILES[@]}"; do
             rm -f -- "$f" && log "INFO" "  removido local: $(basename "$f")"
+            base="${f%.*}"; base="${base%.*}"
+            rm -f -- "${base}.log" 2>/dev/null || true
         done
     else
-        log "INFO" "  nada a remover localmente (≤ ${RET_LOCAL_KEEP} arquivo(s))."
+        log "INFO" "  nada a remover localmente (≤ ${RET_LOCAL_KEEP} backup(s))."
     fi
 
-    # --- 5. Retention remota — deletar arquivos 14+ dias ------------------
-    log "INFO" "Retention remota ${CT_DEST}: deletar ${RET_REMOTE_DAYS}+ dias."
-    if pct exec "$CT_RCLONE" -- bash -c '
-            rclone delete "$1" \
-            --min-age "$2d" \
-            --rmdirs
-        ' _ "${RCLONE_REMOTE}:${REMOTE_PATH}/" "$RET_REMOTE_DAYS" \
-            2>&1 | tee -a "$LOG"; then
+    # --- 5. Retention remota — manter K backups mais recentes no Drive --------
+    log "INFO" "Retention remota ${CT_DEST}: manter ${RET_REMOTE_KEEP} backup(s)."
+    if pct exec "$CT_RCLONE" -- bash -c '/root/backup-manager/app/rclone_keep.sh "$1" "$2" 2>&1' \
+        _ "${RCLONE_REMOTE}:${REMOTE_PATH}/" "$RET_REMOTE_KEEP" \
+        2>&1 | tee -a "$LOG"; then
         log "INFO" "Retention remota ${CT_DEST} OK."
     else
         RC=$?
-        log "WARN" "Retention remota ${CT_DEST}: exit ${RC} (sem arquivos a deletar?)."
+        log "WARN" "Retention remota ${CT_DEST}: exit ${RC}."
     fi
 
     TOTAL_OK=$((TOTAL_OK + 1))

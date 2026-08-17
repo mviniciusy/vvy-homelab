@@ -118,8 +118,8 @@ vzdump do CT 104 (Hermes Agent) diario:
 - Destino: storage backup-dump (/mnt/pve/HD-WD500GB/Dados-WD500GB/vzdump)
 - Conteudo: CT 104 (Hermes Agent completo)
 - Cron: diario 02:45
-- Retention local: 2 snapshots (removidos pelo vzdump --prune-backups)
-- Retention Drive (rclone sync via sync_snapshots.sh): 7 dias
+- Retention local: 3 backups mais recentes (contagem, via find)
+- Retention Drive (rclone_keep.sh): 3 backups mais recentes (contagem)
 - Log: /var/log/snapshot_hermes.log
 
 ### snapshot_semanal.sh (host vvy) — Fase 5
@@ -128,36 +128,37 @@ vzdump semanal dos CTs principais:
 - Destino: storage backup-dump (/mnt/pve/HD-WD500GB/Dados-WD500GB/vzdump)
 - Conteudo: CTs 101, 199, 200, 160, 161
 - Cron: DOM 01:00
-- Retention local: 1 snapshot por CT
-- Retention Drive: 14 dias
+- Retention local: 3 backups mais recentes por CT (contagem, via find)
+- Retention Drive (rclone_keep.sh): 3 backups mais recentes por CT (contagem)
 
 ### snapshot_mensal.sh (host vvy) — Fase 5
 
 vzdump mensal dos CTs de baixa frequencia:
 - Destino: storage backup-dump (/mnt/pve/HD-WD500GB/Dados-WD500GB/vzdump)
 - Conteudo: CTs 103, 112, 120
-- Cron: 2º domingo (dias 8-14) 01:00
-- Retention local: 1 snapshot por CT
-- Retention Drive: 30 dias
+- Cron: todo domingo 01:30 (30 1 * * 0) + guarda no script (dias 8-14) = efetivamente 2º domingo
+  - NOTA: cron Vixie faz OR entre day-of-month e day-of-week; `0 1 8-14 * 0` rodava ~10x/mês. Corrigido 17/08/2026.
+- Retention local: 3 backups mais recentes por CT (contagem, via find)
+- Retention Drive (rclone_keep.sh): 3 backups mais recentes por CT (contagem)
 
 ### backup_proxmox_config.sh (host vvy) — Fase 6
 
 Backup diario da configuracao do Proxmox:
 - Conteudo: tar de /etc/pve/ + configs do host (/etc/network/interfaces, /etc/hostname, /etc/hosts, /etc/resolv.conf, /etc/crontab, /root/.bashrc, /root/.zshrc)
-- Destino local: /mnt/pve/HD-WD500GB/Dados-WD500GB/Proxmox-Config/proxmox-config-YYYY-MM-DD.tar.gz
+- Destino local: /mnt/pve/HD-WD500GB/Dados-WD500GB/vzdump/dump/etc-pve-YYYY-MM-DD.tar.gz (mesmo dir do storage backup-dump; envio via CT 105)
 - Cron: diario 02:00
-- Retention local: 7 dias (remove arquivos com mais de 7d)
-- Retention Drive (rclone sync): 30 dias → gdrive:"1. vvy/vvy-server-backup"/Proxmox-Config/
+- Retention local: 3 arquivos etc-pve-*.tar.gz mais recentes (contagem)
+- Retention Drive (rclone_keep.sh): 3 backups mais recentes → gdrive:"1. vvy/vvy-server-backup"/Proxmox-Config/
 - Log: /var/log/backup_proxmox_config.log
 
 ### sync_root.sh (host vvy) — Fase 4-bis
 
 Backup semanal de 7 pastas de /root:
 - Conteudo: tar.gz de 7 pastas — "1 Documentação Privada", "1 Documentação GITHUB", "1 Obsidian", "2 Oracle", "iac", "logs", "scripts"
-- Destino local: /mnt/pve/HD-WD500GB/Dados-WD500GB/root-backup/root-YYYY-MM-DD.tar.gz
+- Staging local: /mnt/pve/HD-WD500GB/Dados-WD500GB/vvy-server-backup/staging/ (limpo apos upload; nao mantem copia local)
 - Cron: QUA 03:00 (semanal, quartas)
-- Retention local: remove arquivos com mais de 30 dias
-- Retention Drive (rclone sync): 30 dias → gdrive:"1. vvy/vvy-server-backup"/Host-Root/
+- Retention local: N/A (staging temporario; tarballs por pasta no Drive, nomes fixos = sobrescrevem)
+- Retention Drive (rclone_keep.sh): 3 backups mais recentes → gdrive:"1. vvy/vvy-server-backup"/Host-Root/
 - Log: /var/log/sync_root.log
 
 ## Estrutura no Google Drive
@@ -214,9 +215,15 @@ Os scripts de snapshot usavam `/mnt/pve/HD-WD500GB/vzdump/dump` mas o path real 
 
 O VM 200 (debian) tem 2 discos: scsi0 (32 GB NVMe, rootfs) e scsi1 (100 GB HD-WD500GB, montado em /mnt/dados). O disco de 100 GB estava vazio (só lost+found) e era desnecessário no vzdump — o snapshot passou de 132 GB para 6.4 GB. Configurado `backup=0` no scsi1 via `qm set 200 -scsi1 HD-WD500GB:200/vm-200-disk-0.raw,backup=0,size=100G`. Para reverter: remover `,backup=0`.
 
+### Retention local apagava o backup real em vez do log (BUG — corrigido 17/08/2026)
+
+Os scripts de snapshot usavam `find -name "vzdump-*${VMID}*"` na retention local, que casa TANTO o `.tar.zst`/`.vma.zst` quanto o `.log` da mesma execucao. Com keep=1, o sort por mtime mantinha o `.log` (criado por ultimo) e **deletava o `.tar.zst` recém-criado** — o backup de verdade. Em 16/08/2026, com o token OAuth morto, o upload falhou e a retention local apagou os `.tar.zst` semanais/mensais (restaram so os `.log`) — perda real dos snapshots de 16/08.
+
+**Fix aplicado**: retention local agora casa apenas arquivos de backup (`vzdump-*.tar.zst` OR `vzdump-*.vma.zst`), `.log` nao ocupa slot; log de backup podado e removido junto. Retention remota (Drive) trocada de `--min-age Nd` por contagem via novo helper `rclone_keep.sh` (mantem N backups mais recentes; .log nao conta; log orfao removido). Todos os 5 scripts atualizados com keep=3.
+
 ### OAuth do Google Drive expira em 7 dias (modo teste) — RESOLVIDO
 
-O app `vvy-backup` no Google Cloud Console estava em "modo teste" (nao publicado). O Google revoga refresh tokens de apps de teste apos 7 dias sem uso. Sintoma: `invalid_grant` / "Token has been expired or revoked". O token OAuth foi revogado em 05/08/2026 (apos 7 dias sem uso), causando falha em todos os uploads de 05-07/08. Reautorizado em 08/08/2026 e app publicado no mesmo dia — refresh token nao expira mais.
+O app `vvy-backup` no Google Cloud Console estava em "modo teste" (nao publicado). O Google revoga refresh tokens de apps de teste apos 7 dias sem uso. Sintoma: `invalid_grant` / "Token has been expired or revoked". O token OAuth foi revogado em 05/08/2026 (apos 7 dias sem uso), causando falha em todos os uploads de 05-07/08. Reautorizado em 08/08/2026. **ATUALIZACAO 17/08/2026**: token morreu DE NOVO (ultimo sucesso 15/08 02:51; expiry no rclone.conf = 15/08 03:00, exatamente 7 dias apos a reautorizacao) — padrao identico ao modo teste. Provavelmente o app AINDA nao esta publicado de verdade. Pendente: verificar OAuth consent screen (In production) no Google Cloud Console e reautorizar.
 
 ### Crontab do root perdido (07/08/2026) — RESOLVIDO
 

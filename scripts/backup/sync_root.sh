@@ -30,8 +30,8 @@ STAGING_DIR="/mnt/pve/HD-WD500GB/Dados-WD500GB/vvy-server-backup/staging"
 # Destino remoto no Google Drive (rclone remote gdrive, configurado no CT 105)
 REMOTE_DST='gdrive:1. vvy/vvy-server-backup/Host-Root/'
 
-# Retention: remover arquivos com mais de N dias no destino remoto
-RETENTION_DAYS=30
+# Retention: manter os N backups mais recentes no destino remoto
+RET_REMOTE_KEEP=3
 
 # Lista das 8 pastas de /root para backup
 DIRS=(
@@ -208,14 +208,10 @@ fi
 log_info "Limpando staging após upload..."
 rm -f "${STAGING_DIR}"/root-backup-*.tar.gz 2>/dev/null || true
 
-# --- Retention no destino remoto (30 dias) ---
-log_info "Aplicando retention: removendo arquivos com > ${RETENTION_DAYS} dias no destino..."
-if pct exec "$CT_ID" -- bash -c '
-        rclone delete "$1" \
-        --min-age "$2d" \
-        --rmdirs \
-        --verbose
-    ' _ "$REMOTE_DST" "$RETENTION_DAYS" 2>&1 | tee -a "$LOG"; then
+# --- Retention no destino remoto (manter N mais recentes) ---
+log_info "Aplicando retention: manter ${RET_REMOTE_KEEP} backup(s) mais recente(s) no destino..."
+if pct exec "$CT_ID" -- bash -c '/root/backup-manager/app/rclone_keep.sh "$1" "$2" 2>&1' \
+    _ "$REMOTE_DST" "$RET_REMOTE_KEEP" 2>&1 | tee -a "$LOG"; then
     log_ok "Retention aplicada."
 else
     log_warn "Retention falhou (exit=$?) — não aborta, apenas avisa."

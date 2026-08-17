@@ -13,7 +13,7 @@
 #   2. Copia o tar para /mnt/pve/HD-WD500GB/vzdump/dump/ (storage do backup-dump)
 #      que e montado no CT 105 como /mnt/wd500gb/vzdump/dump/
 #   3. Upload para Google Drive via rclone rodando no CT 105
-#   4. Retention: 7 dias local, 30 dias no Drive
+#   4. Retention: manter 3 backups mais recentes (local e Google Drive)
 #
 # Frequencia: diario 02:00 (crontab do root)
 # Log: /var/log/backup_proxmox_config.log
@@ -46,9 +46,9 @@ LOGFILE="/var/log/backup_proxmox_config.log"
 TMP_CRONTAB="/tmp/root-crontab-${DATE}.txt"
 TMP_TAR="/tmp/${TAR_NAME}"
 
-# Retention
-LOCAL_RETENTION_DAYS=7
-REMOTE_RETENTION_DAYS=30
+# Retention (contagem — manter N backups mais recentes)
+RET_LOCAL_KEEP=3
+RET_REMOTE_KEEP=3
 
 # ----------------------------------------------------------------------------
 # Funcoes de log
@@ -151,29 +151,33 @@ log "Upload para Google Drive via rclone (CT 105)..."
 # pct exec não preserva aspas em paths com espaços; usar bash -c com args posicionais
 # --verbose + 2>&1 para capturar stderr do rclone no log (sem isso, erro real é perdido)
 if ! pct exec "$CT_ID" -- bash -c 'rclone copy "$1" "$2" --verbose 2>&1' \
-    _ "${CT_STORAGE_DIR}/${TAR_NAME}" "${GDRIVE_REMOTE}:${GDRIVE_PATH}" | tee -a "$LOG"; then
+    _ "${CT_STORAGE_DIR}/${TAR_NAME}" "${GDRIVE_REMOTE}:${GDRIVE_PATH}" | tee -a "$LOGFILE"; then
     err "Falha no upload rclone para ${GDRIVE_REMOTE}:${GDRIVE_PATH}"
     exit 5
 fi
 log "  upload concluido: ${GDRIVE_REMOTE}:${GDRIVE_PATH}${TAR_NAME}"
 
 # ----------------------------------------------------------------------------
-# 6. Retention local (7 dias)
+# 6. Retention local (manter N mais recentes)
 # ----------------------------------------------------------------------------
-log "Retention local: removendo etc-pve-*.tar.gz com mais de ${LOCAL_RETENTION_DAYS} dias"
-if ! find "$STORAGE_DIR" -maxdepth 1 -name 'etc-pve-*.tar.gz' -mtime +"${LOCAL_RETENTION_DAYS}" -delete; then
-    log "AVISO: find falhou ou nada a remover na retention local"
+log "Retention local: manter ${RET_LOCAL_KEEP} arquivo(s) etc-pve-*.tar.gz mais recente(s)"
+mapfile -t OLD_CFG < <(find "$STORAGE_DIR" -maxdepth 1 -type f -name 'etc-pve-*.tar.gz' -printf '%T@\t%p\n' \
+    | sort -rn | tail -n +"$((RET_LOCAL_KEEP + 1))" | cut -f2-)
+if [ "${#OLD_CFG[@]}" -gt 0 ]; then
+    for f in "${OLD_CFG[@]}"; do
+        rm -f -- "$f" && log "  removido local: $(basename "$f")"
+    done
 else
-    log "  retention local aplicada"
+    log "  retention local: nada a remover (≤ ${RET_LOCAL_KEEP})"
 fi
 
 # ----------------------------------------------------------------------------
-# 7. Retention remota (30 dias no Drive)
+# 7. Retention remota (manter N mais recentes no Drive)
 # ----------------------------------------------------------------------------
-log "Retention remota: removendo arquivos com mais de ${REMOTE_RETENTION_DAYS}d no Drive"
-if ! pct exec "$CT_ID" -- bash -c 'rclone delete "$1" --min-age "$2d" --rmdirs --verbose 2>&1' \
-    _ "${GDRIVE_REMOTE}:${GDRIVE_PATH}" "$REMOTE_RETENTION_DAYS" | tee -a "$LOG"; then
-    log "AVISO: falha na retention remota (rclone delete --min-age)"
+log "Retention remota: manter ${RET_REMOTE_KEEP} backup(s) mais recente(s) no Drive"
+if ! pct exec "$CT_ID" -- bash -c '/root/backup-manager/app/rclone_keep.sh "$1" "$2" 2>&1' \
+    _ "${GDRIVE_REMOTE}:${GDRIVE_PATH}" "$RET_REMOTE_KEEP" | tee -a "$LOGFILE"; then
+    log "AVISO: falha na retention remota (rclone_keep.sh)"
 else
     log "  retention remota aplicada"
 fi
