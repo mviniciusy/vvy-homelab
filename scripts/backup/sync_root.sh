@@ -8,7 +8,7 @@
 #
 # Destino remoto: gdrive:1. vvy/vvy-server-backup/Host-Root/
 # Política: rclone copy (NÃO sync) — /root é aditivo, evitar deleções
-# Retention: 30 dias no destino (--min-age 30d --rmdirs)
+# Retention: manter 3 backups mais recentes no destino (rclone_keep.sh, contagem)
 #
 # Cronjob: semanal, quartas-feiras às 03:00  →  0 3 * * 3
 # ============================================================================
@@ -94,7 +94,7 @@ log_info "=============================================="
 log_info "Iniciando backup de /root no host $HOSTNAME"
 log_info "Destino: $REMOTE_DST"
 log_info "Staging: $STAGING_DIR"
-log_info "Retention: ${RETENTION_DAYS} dias no destino"
+log_info "Retention: manter ${RET_REMOTE_KEEP} backup(s) mais recente(s) no destino"
 log_info "=============================================="
 
 # --- Validar staging ---

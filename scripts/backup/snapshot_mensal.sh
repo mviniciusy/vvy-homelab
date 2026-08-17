@@ -1,7 +1,7 @@
 #!/bin/bash
 # snapshot_mensal.sh — Backup mensal de CTs (103,112,120) via vzdump
 #
-# Fluxo para cada vmid: vzdump <vmid> → upload rclone (via CT 105) → retention local (1) + remota (30d)
+# Fluxo para cada vmid: vzdump <vmid> → upload rclone (via CT 105) → retention local (3) + remota (3, keep)
 #
 # Cron:    2º DOM 01:30   (30 1 * * 0 + guarda de dia no script — dias 8-14)
 # Storage: backup-dump    (dir:/mnt/pve/HD-WD500GB/vzdump, content=backup)

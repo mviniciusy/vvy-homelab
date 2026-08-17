@@ -1,9 +1,9 @@
 #!/bin/bash
 # snapshot_hermes.sh — Backup diário do CT 104 (hermes-agent) via vzdump
 #
-# Fluxo:  vzdump 104 → upload rclone (via CT 105) → retention local (2) + remota (7 dias)
+# Fluxo:  vzdump 104 → upload rclone (via CT 105) → retention local (3) + remota (3, keep)
 #
-# Cron:    DIÁRIO 02:30   (0 30 2 * * * root /root/scripts/backup/snapshot_hermes.sh)
+# Cron:    DIÁRIO 02:45   (45 2 * * * root /root/scripts/backup/snapshot_hermes.sh)
 # Storage: backup-dump    (dir:/mnt/pve/HD-WD500GB/vzdump, content=backup)
 # Drive:   1. vvy/vvy-server-backup/SSD-NVMe-128GB/CT-104-hermes-agent/
 #

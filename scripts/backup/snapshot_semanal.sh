@@ -1,9 +1,9 @@
 #!/bin/bash
 # snapshot_semanal.sh — Backup semanal de CTs/VMs (101,199,200,160,161) via vzdump
 #
-# Fluxo para cada vmid: vzdump <vmid> → upload rclone (via CT 105) → retention local (1) + remota (14d)
+# Fluxo para cada vmid: vzdump <vmid> → upload rclone (via CT 105) → retention local (3) + remota (3, keep)
 #
-# Cron:    DOM 01:00   (0 0 1 * * 0 root /root/scripts/backup/snapshot_semanal.sh)
+# Cron:    DOM 01:00   (0 1 * * 0 root /root/scripts/backup/snapshot_semanal.sh)
 # Storage: backup-dump (dir:/mnt/pve/HD-WD500GB/vzdump, content=backup)
 # Drive:   1. vvy/vvy-server-backup/SSD-{NVMe|SATA}-128GB/CT-<id>-<hostname>/
 #
