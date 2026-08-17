@@ -233,13 +233,9 @@ O `/var/spool/cron/crontabs/root` foi reinstalado vazio em 07/08 12:45:05 — ap
 
 O `PATH` do cron e `/usr/bin:/bin`, mas `pvesm` e `pct` estao em `/usr/sbin`. Os 5 scripts de backup do host falhavam silenciosamente (exit 127 mascarado por `2>/dev/null`). Correcao: `export PATH=/usr/sbin:/usr/bin:/sbin:/bin` apos `set -euo pipefail` em todos os 5 scripts.
 
-### OAuth do Google Drive expira em 7 dias (modo teste) — RESOLVIDO
+### OAuth do Google Drive expira em 7 dias (modo teste) — ATUALIZADO 17/08/2026 (reincidência)
 
-O app `vvy-backup` no Google Cloud Console estava em "modo teste" (nao publicado). O Google revoga refresh tokens de apps de teste apos 7 dias sem uso. Sintoma: `invalid_grant` / "Token has been expired or revoked". O token OAuth foi revogado em 05/08/2026 (apos 7 dias sem uso), causando falha em todos os uploads de 05-07/08. Reautorizado em 08/08/2026 e app publicado no mesmo dia — refresh token nao expira mais.
-
-### Crontab do root perdido (07/08/2026) — RESOLVIDO
-
-O `/var/spool/cron/crontabs/root` foi reinstalado vazio em 07/08 as 12:45:05 — apenas o header, sem nenhum job. Os 5 cronjobs de backup foram perdidos. Restaurado em 08/08 com os 5 jobs + `PATH=/usr/sbin:/usr/bin:/sbin:/bin` no header. NOTA: o `backup_proxmox_config.sh` JA inclui o crontab do root dentro do tar.gz (como `root-crontab.txt` via `--transform`) — confirmado extraindo o tar de 07/08 02:00 que continha os 5 jobs corretos. A perda as 12:45 foi APOS o backup das 02:00.
+O app `vvy-backup` no Google Cloud Console estava em "modo teste" (não publicado). O Google revoga refresh tokens de apps de teste após 7 dias sem uso. Sintoma: `invalid_grant` / "Token has been expired or revoked". Reautorizado em 08/08/2026. **ATUALIZAÇÃO 17/08/2026**: token morreu DE NOVO (último sucesso 15/08 02:51; expiry no rclone.conf = 15/08 03:00, exatamente 7 dias após a reautorização) — padrão idêntico ao modo teste. Provavelmente o app AINDA não está publicado de verdade. Pendente: verificar OAuth consent screen (In production) no Google Cloud Console e reautorizar.
 
 ### PATH do cron (corrigido 07/08/2026)
 
