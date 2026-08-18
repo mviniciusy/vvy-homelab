@@ -87,3 +87,55 @@ curl -sL 'https://r.jina.ai/https://exemplo.com'
 > nesta VM, mas foi descartado pela RAM limitada (3.8 GB alocados, Chrome
 > headless consome ~500MB-1GB). O SaaS via curl custa zero RAM e zero
 > manutenção.
+
+---
+
+## 3. Hoje Belém — Site de Eventos (Ago/2026)
+
+|Parâmetro|Valor|
+|---|---|
+|Repo|`github.com/ingridslv/hojebelem` (público, colaborador)|
+|Stack|Next.js 16.3.1 + React 19 + Prisma 6 + Postgres 16 + NextAuth v5 (email/senha)|
+|Local|`/opt/hojebelem` (git clone)|
+|Acesso|http://<DOCKER_VM_IP>:3000 (LAN)|
+|Admin seed|`admin@hojebelem.local` (senha temporária do README)|
+|Compose|`docker compose up -d --build` — postgres + app|
+|Volumes|`postgres_data` (banco), `uploads_data` (/app/public/uploads)|
+|Restart|`unless-stopped` (override local)|
+
+### Container
+- `hojebelem-app-1` — Next.js na porta 3000 (imagem `hojebelem-app:latest`)
+- `hojebelem-postgres-1` — Postgres 16 na porta 5432 (imagem `postgres:16-alpine`)
+
+### Arquivos locais (fora do git, via .git/info/exclude)
+- `Dockerfile.local` — igual ao Dockerfile do repo, mas aceita ARG `DATABASE_URL` no build
+- `docker-compose.override.yml` — restart unless-stopped + volumes de uploads + `AUTH_TRUST_HOST=true`
+- `package-lock.json` / `src/app/layout.tsx` — correções locais na branch `fix/local-build` (pendente PR)
+
+### Por que o Dockerfile.local?
+- O Dockerfile original do repo builda sem `DATABASE_URL`; as páginas admin consultam
+  Prisma no prerender (`/admin/eventos`) e o `next build` quebra.
+- `Dockerfile.local` recebe a URL via build ARG; o Postgres deve estar de pé antes do build:
+  ```bash
+  cd /opt/hojebelem
+  docker compose up -d postgres
+  export DATABASE_URL="postgresql://postgres:postgres@localhost:5432/hojebelem?schema=public"
+  npx prisma migrate deploy
+  docker compose build app && docker compose up -d
+  ```
+- Correções do repo também aplicadas localmente:
+  - `package-lock.json` regenerado (lock desatualizado: faltavam `@emnapi/*`).
+  - `src/app/layout.tsx`: `LayoutProps<"/">` não existia — corrigido para `Readonly<{children: ReactNode}>`.
+
+### Atualizar o site (pull + rebuild)
+```bash
+cd /opt/hojebelem && git pull
+docker compose up -d postgres
+export DATABASE_URL="postgresql://postgres:postgres@localhost:5432/hojebelem?schema=public"
+npx prisma migrate deploy   # se houver migration nova
+docker compose build app && docker compose up -d
+```
+
+### Observações
+- Google OAuth só ativa se `GOOGLE_CLIENT_ID/SECRET` estiverem no compose — não configurado.
+- VM 200 não roda tailscaled, mas é alcançável de fora da LAN via subnet routing do vvy (`192.168.1.0/24` anunciado no Tailscale) — o link `http://<DOCKER_VM_IP>:3000` funciona de qualquer lugar com o cliente conectado.
