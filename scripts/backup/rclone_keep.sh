@@ -54,9 +54,8 @@ while IFS= read -r f; do
             # arquivo de backup
             if [ "$keep_pending" -gt 0 ]; then
                 keep_pending=$((keep_pending - 1))
-                kept_backups="${kept_backups}${f%.tar.zst}"$'\n'
-                kept_backups="${kept_backups}${f%.vma.zst}"$'\n'
-                kept_backups="${kept_backups}${f%.tar.gz}"$'\n'
+                base="${f%.tar.zst}"; base="${base%.vma.zst}"; base="${base%.tar.gz}"
+                kept_backups="${kept_backups}${base}"$'\n'
             else
                 to_delete="${to_delete}${f}"$'\n'
             fi
