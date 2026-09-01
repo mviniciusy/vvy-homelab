@@ -11,7 +11,7 @@
 |ID da VM|200|
 |Nome|debian|
 |vCPUs|8|
-|RAM|4 GB|
+|RAM|10 GB|
 |Disco de sistema|32 GB (storage `nvme128`)|
 |Disco de dados|100 GB (storage `HD-WD500GB`, montado em `/mnt/dados`)|
 |Sistema operacional|Debian 12.12 (Bookworm), sem interface gráfica|
@@ -33,6 +33,12 @@
 > - Corrigido: fstab agora usa `UUID=<VM200_DADOS_DISK_UUID>` com opção `defaults,nofail`. A VM boota normalmente mesmo se o disco secundário não estiver disponível.
 > - Journal recovery do disco secundário concluído (`e2fsck -fp /dev/sdb`).
 > - Senha do root definida (estava locked).
+
+> **Set/2026 (estado atual):**
+> - RAM aumentada para 10 GB. Node.js 22.23.1 e Python 3.11.2 instalados.
+> - Containers ativos: `gemini-fastapi` (porta 4981), `omniroute-prod` (20130/20131) + `omniroute-redis-prod`, `searxng` (8888), `portainer` (8000/9443).
+> - Containers parados: `hojebelem-app-1` e `hojebelem-postgres-1` (Exited 255 desde ~22/Ago), `hojebelem-collector-1` em restart loop.
+> - Disco de sistema `/dev/sda1` (31G): 87% em 01/Set; limpeza no mesmo dia (build cache 7.6 GB, 4 imagens antigas, journal, apt cache, vscode-server antigo) reduziu para **43%** (13G usados). Docker Engine usa containerd image store (`/var/lib/containerd`) — sem `daemon.json`; `/mnt/dados` (sdb) guarda apenas configs/bind mounts.
 
 
 ---
@@ -138,4 +144,5 @@ docker compose build app && docker compose up -d
 
 ### Observações
 - Google OAuth só ativa se `GOOGLE_CLIENT_ID/SECRET` estiverem no compose — não configurado.
+- **Set/2026:** containers desativados intencionalmente em 01/Set (`docker stop` em app-1, postgres-1 e collector-1 — encerra o restart loop do collector; imagens e volumes preservados). Site offline até novo `docker compose up -d`.
 - VM 200 não roda tailscaled, mas é alcançável de fora da LAN via subnet routing do vvy (`192.168.1.0/24` anunciado no Tailscale) — o link `http://<DOCKER_VM_IP>:3000` funciona de qualquer lugar com o cliente conectado.
