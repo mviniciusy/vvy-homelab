@@ -1,8 +1,8 @@
-# Oracle Cloud Free Tier — VM vvy-vnic
+# Oracle Cloud — VM vvy-vnic
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-VM na **Oracle Cloud Free Tier** (São Paulo) que atua como extensão remota do homelab Proxmox vvy. Funciona como servidor de suporte, testes e serviços auxiliares — um nó externo à rede local, acessível via SSH direto e via Tailscale.
+VM na **Oracle Cloud** (São Paulo, conta Pay-As-You-Go desde Ago/2026) que atua como extensão remota do homelab Proxmox vvy. Funciona como servidor de suporte, testes e serviços auxiliares — um nó externo à rede local, acessível via SSH direto e via Tailscale.
 
 ---
 
@@ -11,7 +11,7 @@ VM na **Oracle Cloud Free Tier** (São Paulo) que atua como extensão remota do 
 ```mermaid
 graph TB
     subgraph OracleCloud["Oracle Cloud - Sao Paulo"]
-        OCI[VM vvy-vnic<br/>Arm A1 Flex<br/><ORACLE_PUBLIC_IP><br/>Tailscale <TAILSCALE_ORACLE_VM_IP>]
+        OCI[VM vvy-vnic<br/>Arm A1 Flex 4 OCPU 24GB<br/><ORACLE_PUBLIC_IP><br/>Tailscale <TAILSCALE_ORACLE_VM_IP>]
         VW[Vaultwarden<br/><DUCKDNS_SUBDOMAIN>.duckdns.org]
         CD[Caddy<br/>Let's Encrypt]
     end
@@ -52,12 +52,14 @@ graph TB
 | Recurso | Especificação |
 |---|---|
 | Shape | `VM.Standard.A1.Flex` (Arm Ampere) |
-| CPU | 2x Neoverse-N1 (aarch64) |
-| RAM | 12 GB |
+| OCPU | 4x Neoverse-N1 (aarch64) |
+| RAM | 24 GB |
 | Swap | 0 B |
 | Disco | 200 GB (`/dev/sda`) |
+| Billing | Pay-As-You-Go (limite do shape A1 Flex ampliável além do Always Free) |
 | Virtualização | KVM (QEMU) |
 | Firmware | UEFI 1.6.6 |
+| Upgrade | Set/2026: 2 OCPU / 12 GB → 4 OCPU / 24 GB (rede/VM emitiu reboot) |
 
 ---
 
@@ -66,9 +68,9 @@ graph TB
 | Campo | Valor |
 |---|---|
 | OS | Ubuntu 24.04.4 LTS (Noble Numbat) |
-| Kernel | `6.17.0-1018-oracle` (aarch64) |
+| Kernel | `6.17.0-1020-oracle` (aarch64) |
 | Arquitetura | arm64 / aarch64 |
-| Timezone | UTC (Etc/UTC) — pendente ajustar para America/Sao_Paulo |
+| Timezone | America/Sao_Paulo (-03) |
 | Cloud-init | done (completo) |
 
 ---
@@ -123,13 +125,13 @@ ssh root@<TAILSCALE_VVV_IP>  # vvy via Tailscale
 
 ---
 
-## Software Instalado (Jul/2026)
+## Software Instalado (verificado Set/2026)
 
 | Software | Versão | Função |
 |---|---|---|
 | Docker | 29.6.2 | Container runtime |
 | Docker Compose | v5.3.1 | Orquestração |
-| Tailscale | 1.98.9 | VPN mesh — `--accept-routes` ativo |
+| Tailscale | 1.102.2 | VPN mesh — `--accept-routes` ativo |
 | fail2ban | 1.0.2 | Proteção SSH |
 | wakeonlan | — | Envio de magic packet WoL |
 
@@ -216,6 +218,6 @@ ssh root@<TAILSCALE_VVV_IP>  # vvy via Tailscale
 ## Próximos Passos
 
 - [ ] Hardening: desabilitar PasswordAuthentication apos confirmar chave SSH
-- [ ] Timezone: `America/Sao_Paulo`
-- [ ] Configurar IP reservado (em vez de efemero)
+- [x] Timezone: `America/Sao_Paulo` (feito em Set/2026)
+- [ ] Configurar IP reservado (IP efemero pode mudar em reboot)
 - [ ] Backup automático dos dados do Vaultwarden

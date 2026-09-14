@@ -23,7 +23,7 @@ graph TB
     end
 
     subgraph OC["Oracle Cloud - São Paulo"]
-        OCI[VM vvy-vnic<br/>Arm A1 Flex<br/><ORACLE_PUBLIC_IP><br/>Vaultwarden + WoL]
+        OCI[VM vvy-vnic<br/>Arm A1 Flex 4OCPU/24GB<br/><ORACLE_PUBLIC_IP><br/>Vaultwarden + WoL]
     end
 
     subgraph Proxmox VE - vvy
@@ -84,7 +84,7 @@ graph TB
 | [Hermes Agent](docs/hermes-agent.md)               | Gateway de mensageria IA (Telegram) + backend remoto via Tailscale (Desktop App) — CT 104 |
 | [Terraform](docs/terraform-proxmox.md)             | Infraestrutura como Código — provisionamento Proxmox                                      |
 | [Ansible](docs/ansible-proxmox.md)                 | Configuração como Código — automação de tarefas                                           |
-| [Oracle Cloud](docs/oracle-cloud.md)               | VM vvy-vnic na Oracle Cloud Free Tier — Arm A1 Flex, extensão remota do homelab           |
+| [Oracle Cloud](oracle/oracle-cloud.md)             | VM vvy-vnic na Oracle Cloud (PAYG) — Arm A1 Flex 4 OCPU / 24 GB, extensão remota do homelab           |
 | [BIOS vvy](docs/bios-vvy.md)                       | Configuração completa da BIOS QIYIDA X79 — C-states, power limits, QPI, ACPI              |
 
 ---

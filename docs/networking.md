@@ -55,7 +55,7 @@ graph TB
 |hermes-agent (LXC 104)|`<TAILSCALE_HERMES_IP>`|Container|Nó Tailscale direto no LXC — acesso ao hermes-serve sem hop|
 |vinimau (Notebook)|`<TAILSCALE_NOTEBOOK_IP>`|PC cliente|Conecta ao hermes-serve via Tailscale|
 |samsung-sm-s921b|`<TAILSCALE_PHONE_IP>`|Celular|—|
-|vvy-vnic (Oracle VM)|`<TAILSCALE_ORACLE_VM_IP>`|VM Cloud|Arm A1 Flex — `--accept-routes` ativo, enxerga LAN 192.168.1.0/24|
+|vvy-vnic (Oracle VM)|`<TAILSCALE_ORACLE_VM_IP>`|VM Cloud|Arm A1 Flex 4 OCPU / 24 GB (PAYG) — `--accept-routes` ativo, enxerga LAN 192.168.1.0/24|
 
 ### Acesso via Tailscale por Container
 

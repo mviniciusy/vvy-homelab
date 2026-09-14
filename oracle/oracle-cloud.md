@@ -1,12 +1,12 @@
-# Oracle Cloud Free Tier — VM vvy-vnic
+# Oracle Cloud — VM vvy-vnic
 
-> **Versão:** Julho/2026 | **Autor:** Vinícius Souza
+> **Versão:** Setembro/2026 (shape 4 OCPU / 24 GB, Pay-As-You-Go) | **Autor:** Vinícius Souza
 
 ---
 
 ## 1. Visão Geral
 
-VM na Oracle Cloud Free Tier (São Paulo) que atua como extensão remota do homelab Proxmox vvy. Servidor de suporte e testes com arquitetura Arm (aarch64).
+VM na Oracle Cloud (São Paulo, conta Pay-As-You-Go) que atua como extensão remota do homelab Proxmox vvy. Servidor de suporte e testes com arquitetura Arm (aarch64).
 
 |Parâmetro|Valor|
 |---|---|
@@ -24,8 +24,9 @@ VM na Oracle Cloud Free Tier (São Paulo) que atua como extensão remota do home
 |Recurso|Especificação|
 |---|---|
 |Shape|`VM.Standard.A1.Flex` (Arm Ampere)|
-|CPU|2x Neoverse-N1 (aarch64)|
-|RAM|12 GB|
+|OCPU|4x Neoverse-N1 (aarch64)|
+|RAM|24 GB|
+|Billing|Pay-As-You-Go (A1 Flex além do teto Always Free de 2 OCPU / 12 GB)|
 |Swap|0 B|
 |Disco|200 GB (`/dev/sda`)|
 |Virtualização|KVM (QEMU)|
@@ -47,9 +48,9 @@ sda       200G  disk
 |Campo|Valor|
 |---|---|
 |OS|Ubuntu 24.04.4 LTS (Noble Numbat)|
-|Kernel|`6.17.0-1018-oracle` (aarch64)|
+|Kernel|`6.17.0-1020-oracle` (aarch64)|
 |Arquitetura|arm64 / aarch64|
-|Timezone|UTC — pendente ajustar para `America/Sao_Paulo`|
+|Timezone|America/Sao_Paulo (-03)|
 |Cloud-init|done (completo)|
 |Oracle Cloud Agent|ativo (snap)|
 
@@ -124,26 +125,35 @@ ssh -i /root/.ssh/oracle-vm.key ubuntu@<ORACLE_PUBLIC_IP>
 
 ## 6. Firewall Interno (iptables INPUT)
 
+Verificado Set/2026 — regras atuais (netfilter-persistent):
+
 |#|Target|Protocolo|Match|Observação|
 |---|---|---|---|---|
-|1|ACCEPT|icmp|—|Inserido manualmente|
-|2|ACCEPT|tcp|dpt:22|Inserido manualmente|
-|3|ACCEPT|all|state RELATED,ESTABLISHED|Oracle default|
-|4|ACCEPT|icmp|—|Oracle default|
-|5|ACCEPT|all|—|Oracle default|
-|6|ACCEPT|tcp|state NEW dpt:22|Oracle default|
-|7|REJECT|all|—|reject-with icmp-host-prohibited|
+|1|ts-input|—|—|Cadeia do Tailscale|
+|2–3|ACCEPT|icmp / tcp|dpt:22|Regras manuais (legado)|
+|4–7|ACCEPT|mixed|RELATED,ESTABLISHED, icmp, all, NEW dpt:22|Oracle default|
+|8–9|ACCEPT|tcp|dpt:443, dpt:80|Vaultwarden/Caddy|
+|10|REJECT|all|—|reject-with icmp-host-prohibited|
+|11–16|ufw-before/after-…|—|—|Chains orfas do UFW (ja removido — inofensivas, podem ser limpas)|
+|17–21|duplicatas|—|—|Bloco duplicado das regras Oracle (persistido em dobro — sem impacto funcional)|
+
+> UFW **não** está instalado. O catch-all REJECT fica na linha 10; novas portas exigem `iptables -I INPUT <n<10>` + `netfilter-persistent save`.
 
 ---
 
 ## 7. Software
 
-|Software|Estado|
-|---|---|
-|Docker|NÃO instalado|
-|Snap|instalado (oracle-cloud-agent, core18, snapd)|
-|cloud-init|completo|
-|oracle-cloud-agent|ativo (snap)|
+Verificado Set/2026:
+
+|Software|Versão|Estado|
+|---|---|---|
+|Docker|29.6.2|instalado, ativo|
+|Docker Compose|v5.3.1|plugin|
+|Tailscale|1.102.2|conectado, `--accept-routes`|
+|fail2ban|1.0.2|jail sshhd ativo|
+|Containers|vaultwarden + caddy|rodando (healthy)|
+|Snap|—|oracle-cloud-agent ativo|
+|cloud-init|—|completo|
 
 ---
 
@@ -185,10 +195,12 @@ chpasswd:
 ## 10. Proximos Passos
 
 - [ ] Hardening: desabilitar PasswordAuthentication
-- [ ] Timezone: `America/Sao_Paulo`
-- [ ] Instalar Docker + ferramentas
-- [ ] Configurar Tailscale
-- [ ] Limpar regras iptables duplicadas
-- [ ] Configurar IP reservado
-- [ ] Anti-idle: cron heartbeat
-- [ ] Configurar UFW
+- [x] Timezone: `America/Sao_Paulo` (feito)
+- [x] Instalar Docker + ferramentas (feito)
+- [x] Configurar Tailscale (feito)
+- [ ] Limpar regras iptables duplicadas + chains orfas do UFW
+- [ ] Configurar IP reservado (atual e efemero)
+- [x] Anti-idle: cron heartbeat (feito — atenção: PAYG reduz risco de reclaim, mas anti-idle mantem utilidade de monitoramento)
+- [x] Avaliar servidor de jogo (Project Zomboid — ver secao Proximos Projetos)
+
+> **NUNCA instalar UFW** — conflita com iptables-persistent da Oracle (ver skill oracle-cloud).
