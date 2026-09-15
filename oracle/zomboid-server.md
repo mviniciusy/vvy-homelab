@@ -47,16 +47,21 @@ na conta que possui o jogo (App ID `108600`), aplicar com `steam=1` +
 `-authglslt <TOKEN>` no start.
 
 **Status Set/2026: GSLT aplicado e validado com login real de jogador.** Stack
-atual inclui dois fixes de emulação: `-Xint` no `ProjectZomboid64.json`
-(JIT do JVM crashava sob FEX quando um jogador entrava — SIGSEGV em frames
-`J c1`/`J c2`) e **code cache do FEX** em volume persistente
-(`/srv/zomboid/fex-cache` via `FEX_ENABLECODECACHINGWIP` +
+atual inclui dois fixes de emulação: (a) o JIT do JVM crashava sob FEX quando
+um jogador entrava (SIGSEGV em frames `J c1`/`J c2`) — corrigido **excluindo do
+JIT apenas as classes dos hs_err** via `CompileCommand=exclude`
+(`zombie/core/utils/Bits`, `.../SpriteConfigManager` e a inner `$ObjectInfo`);
+**não usar `-Xint`** — ele resolve o crash mas derruba o throughput e o
+WorldStreamer passa a estourar o timeout de 30 s do cliente (`chunk was not
+generated`, áreas pretas no jogo); (b) **code cache do FEX** em volume
+persistente (`/srv/zomboid/fex-cache` via `FEX_ENABLECODECACHINGWIP` +
 `FEX_APP_CACHE_LOCATION` com barra final), que elimina a re-tradução
-x86→ARM a cada boot. Atenção: o primeiro boot após limpar o cache
-demora ~10 min em `Compiling code...` (janela em que o servidor parece
-"não responder"); boots seguintes são rápidos. Recriação do
-container é feita pelo script oficial na VM: `sudo bash
-/srv/zomboid/run-container.sh`.
+x86→ARM a cada boot. Atenção: o primeiro boot após limpar o cache demora
+~10 min em `Compiling code...` (janela em que o servidor parece "não
+responder"); boots seguintes são rápidos. Recriação do container é feita
+pelo script oficial na VM: `sudo bash /srv/zomboid/run-container.sh`. Descartados
+por decisão: migrar para a branch unstable (42.19.2 < 42.20.4 stable = downgrade)
+e rebuild da imagem com FEX 2609.
 
 ## Comandos úteis (VM Oracle)
 
