@@ -80,3 +80,12 @@ ss -lun | grep -cE "1626[12]"   # portas abertas
 - Update de build: baixar de novo no PC (Steam → Tools → Dedicated Server) →
   copiar para o share do vvy → `rsync` vvy → VM (path:
   `/mnt/pve/HD-WD500GB/Dados-WD500GB/zomboid/pz-server-linux/`)
+
+
+## Estado 15/09/2026 - emulacao x86->ARM da Zulu25+B42 NAO E ESTAVEL
+- FEX julho E 2609 crasham em SIGSEGV de traducao de JIT (frames J c1/c2 em classes triviais da JDK: String.endsWith, AtomicInteger.getAndAdd, Bits, Matcher...). Assinatura SEGV_MAPERR em compressed oops (bug de traducao de load/store/atomico).
+- Box64 tem a MESMA classe de crash (issue ptitSeb/box64#3864, aberto desde mai/2026).
+- Exclusao de classes via CompileCommand NAO resolve (whack-a-mole esgotou em 7+ metodos).
+- -Xint resolve o crash mas mata throughput (chunk was not generated ~30000ms, arredores pretos, injogavel).
+- DECISAO PENDENTE do usuario: rodar nativo x86 no vvy (unica via estavel+rapida) vs aceitar -Xint lento na Oracle.
+- Workaround nao-testado reportado: pinar FEX no commit a08a6ce5de51f5e625357ecaed46c463aa1e3c99 (mai/2025) ou FEX_MULTIBLOCK=0 na 2609.
