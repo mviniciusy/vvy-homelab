@@ -98,6 +98,39 @@ sda       200G  disk
 
 ---
 
+## 4.5 Console OCI por API (oci-cli)
+
+Gerenciamento da nuvem sem browser: Security List, reserva de IP, shape, leitura de estado da VCN.
+
+| Item | Valor |
+|---|---|
+| OCI CLI | venv `/opt/oci-venv`, bin `/usr/local/bin/oci` (3.92.1) |
+| Config | `/root/.oci/config` (perfil DEFAULT) |
+| Chave privada | `/root/.oci/oci_api_key.pem` |
+| PEM + docs das chaves | host vvy: `2 Oracle/API KEY/` (FORA do git) |
+| Region | `sa-saopaulo-1` |
+| Tenancy OCID | `<OCI_TENANCY_OCID>` |
+| User OCID | `<OCI_USER_OCID>` |
+| Fingerprint (chave vigente) | `<OCI_API_FINGERPRINT>` |
+| Instância `vvy-oracle-server` | `<OCI_INSTANCE_OCID>` |
+| Default Security List (vvy-vcn) | `<OCI_SECLIST_OCID>` |
+| Subnet publica | `<OCI_SUBNET_OCID>` |
+| VNIC | `<OCI_VNIC_OCID>` |
+
+Comandos de exemplo:
+
+```bash
+oci compute instance list --compartment-id $TENANCY -o table
+oci network security-list get --security-list-id $SL > sl.json
+# editar JSON (full replace!) e aplicar:
+oci network security-list update --security-list-id $SL \
+  --ingress-security-rules file:///root/sl_rules.json --force
+```
+
+> **Pitfalls:** (1) `update` substitui TODAS as ingress rules — sempre GET → editar → UPDATE. (2) `--force` por extenso (`-O` nao existe na 3.92.1). (3) Porta fica aninhada em `tcp-options`/`udp-options`; destination-port-range em branco no console = TODAS as portas. (4) API key so funciona apos ser ANEXADA ao usuario no console (download sem confirmar = 401). (5) A PEM do console e PKCS#8 — `file` diz "OpenSSH private key" e engana; fingerprint derivavel com `openssl pkey -in k.pem -pubout -outform DER | openssl md5 -c`.
+
+---
+
 ## 5. Acesso
 
 ### SSH (internet)
