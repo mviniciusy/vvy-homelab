@@ -26,7 +26,7 @@ VM na Oracle Cloud (São Paulo, conta Pay-As-You-Go) que atua como extensão rem
 |Shape|`VM.Standard.A1.Flex` (Arm Ampere)|
 |OCPU|4x Neoverse-N1 (aarch64)|
 |RAM|24 GB|
-|Billing|Pay-As-You-Go (A1 Flex além do teto Always Free de 2 OCPU / 12 GB)|
+|Billing|Always Free expandido — teto atual do A1 Flex e 4 OCPU / 24 GB gratis (conta PAYG, shape dentro do free)|
 |Swap|0 B|
 |Disco|200 GB (`/dev/sda`)|
 |Virtualização|KVM (QEMU)|

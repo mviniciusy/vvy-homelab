@@ -84,7 +84,8 @@ graph TB
 | [Hermes Agent](docs/hermes-agent.md)               | Gateway de mensageria IA (Telegram) + backend remoto via Tailscale (Desktop App) — CT 104 |
 | [Terraform](docs/terraform-proxmox.md)             | Infraestrutura como Código — provisionamento Proxmox                                      |
 | [Ansible](docs/ansible-proxmox.md)                 | Configuração como Código — automação de tarefas                                           |
-| [Oracle Cloud](oracle/oracle-cloud.md)             | VM vvy-vnic na Oracle Cloud (PAYG) — Arm A1 Flex 4 OCPU / 24 GB, extensão remota do homelab           |
+| [Oracle Cloud](oracle/oracle-cloud.md)             | VM vvy-vnic na Oracle Cloud — Arm A1 Flex 4 OCPU / 24 GB (Always Free), extensão remota do homelab           |
+| [Zomboid Server](oracle/zomboid-server.md)             | Servidor dedicado Project Zomboid B42 na VM Oracle — container FEX-Emu ARM64, portas e GSLT           |
 | [BIOS vvy](docs/bios-vvy.md)                       | Configuração completa da BIOS QIYIDA X79 — C-states, power limits, QPI, ACPI              |
 
 ---

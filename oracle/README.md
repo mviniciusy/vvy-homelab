@@ -56,7 +56,7 @@ graph TB
 | RAM | 24 GB |
 | Swap | 0 B |
 | Disco | 200 GB (`/dev/sda`) |
-| Billing | Pay-As-You-Go (limite do shape A1 Flex ampliável além do Always Free) |
+| Billing | Always Free expandido (teto atual: 4 OCPU / 24 GB) — conta upgradeada para PAYG, mas o shape continua dentro do gratis |
 | Virtualização | KVM (QEMU) |
 | Firmware | UEFI 1.6.6 |
 | Upgrade | Set/2026: 2 OCPU / 12 GB → 4 OCPU / 24 GB (rede/VM emitiu reboot) |
@@ -139,6 +139,20 @@ ssh root@<TAILSCALE_VVV_IP>  # vvy via Tailscale
 
 ## Serviços Ativos
 
+### Zomboid Dedicated Server (Build 42.20.4)
+
+| Item | Valor |
+|---|---|
+| Container | `etheth888/project-zomboid-arm64:main` (FEX-Emu embutido, repo EthanHand/project-zomboid-docker-arm64) |
+| Recursos | `--cpus 4 --memory 16g`, heap `-Xmx12g`, servidor `pzvvy` |
+| Portas | UDP 16261-16262, UDP 8766-8767, TCP 16262-16272 (1 TCP por slot de jogador) |
+| Dados | `/srv/zomboid/server` (jogo x86_64 montado) + `/srv/zomboid/data` (mundo/config) |
+| Fix obrigatorio | `ProjectZomboid64.json`: ZGC -> G1GC + reflection flags (ZGC nao emula, SIGILL no boot) |
+| Pendencia | GSLT token (conta que possui o jogo) para multiplayer Steam B42 |
+
+> Tutorial completo com credenciais esta fora do git: `2 Oracle/Zomboid Server/` (host vvy).
+> Versao publica sanitizada: [oracle/zomboid-server.md](zomboid-server.md).
+
 ### Vaultwarden
 
 | Item | Valor |
@@ -220,4 +234,5 @@ ssh root@<TAILSCALE_VVV_IP>  # vvy via Tailscale
 - [ ] Hardening: desabilitar PasswordAuthentication apos confirmar chave SSH
 - [x] Timezone: `America/Sao_Paulo` (feito em Set/2026)
 - [ ] Configurar IP reservado (IP efemero pode mudar em reboot)
+- [ ] GSLT token no Zomboid (`steamcommunity.com/dev/managegameservers`, App ID 108600) + subdominio DuckDNS `vvy-zomboid`
 - [ ] Backup automático dos dados do Vaultwarden
