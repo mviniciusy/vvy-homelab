@@ -234,6 +234,5 @@ chpasswd:
 - [ ] Limpar regras iptables duplicadas + chains orfas do UFW
 - [ ] Configurar IP reservado (atual e efemero)
 - [x] Anti-idle: cron heartbeat (feito — atenção: PAYG reduz risco de reclaim, mas anti-idle mantem utilidade de monitoramento)
-- [x] Avaliar servidor de jogo (Project Zomboid — ver secao Proximos Projetos)
 
 > **NUNCA instalar UFW** — conflita com iptables-persistent da Oracle (ver skill oracle-cloud).
