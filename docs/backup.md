@@ -121,6 +121,12 @@ vzdump do CT 104 (Hermes Agent) diario:
 - Retention local: 3 backups mais recentes (contagem, via find)
 - Retention Drive (rclone_keep.sh): 3 backups mais recentes (contagem)
 - Log: /var/log/snapshot_hermes.log
+- Fix 03/10/2026: limpeza preventiva de snapshots LVM órfãos (`snap_*_vzdump` em nvme128) antes do
+  vzdump. O vzdump pode falhar no meio e deixar o snapshot LVM preso (erro real: em 29/09/2026 o
+  cleanup falhou com "no lock found trying to remove 'backup' lock", deixando
+  `snap_vm-104-disk-0_vzdump` órfão e abortando todos os backups subsequentes com "already exists").
+  A limpeza remove qualquer snapshot órfão inativo antes de tentar o novo vzdump.
+
 
 ### snapshot_semanal.sh (host vvy) — Fase 5
 
