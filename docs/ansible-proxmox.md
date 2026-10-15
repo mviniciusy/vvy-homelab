@@ -45,7 +45,6 @@ vvy ansible_host=<HOST_IP>
 [lxc_containers]
 pihole    ansible_host=<PIHOLE_IP>
 ollama    ansible_host=<OLLAMA_IP>
-n8n       ansible_host=<N8N_IP>
 hermes    ansible_host=<HERMES_IP>
 qbit      ansible_host=<QBITTORRENT_IP>
 zabbix    ansible_host=<ZABBIX_IP>

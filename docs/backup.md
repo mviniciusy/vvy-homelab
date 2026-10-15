@@ -141,7 +141,7 @@ vzdump semanal dos CTs principais:
 
 vzdump mensal dos CTs de baixa frequencia:
 - Destino: storage backup-dump (/mnt/pve/HD-WD500GB/Dados-WD500GB/vzdump)
-- Conteudo: CTs 103, 112, 120
+- Conteudo: CTs 112, 120
 - Cron: todo domingo 01:30 (30 1 * * 0) + guarda no script (dias 8-14) = efetivamente 2º domingo
   - NOTA: cron Vixie faz OR entre day-of-month e day-of-week; `0 1 8-14 * 0` rodava ~10x/mês. Corrigido 17/08/2026.
 - Retention local: 3 backups mais recentes por CT (contagem, via find)
@@ -182,7 +182,6 @@ Backup semanal de 7 pastas de /root:
 │   ├── CT-101-pihole/
 │   ├── CT-160-zabbix/
 │   ├── CT-161-grafana/
-│   ├── CT-103-n8n/
 │   ├── CT-112-handbrake/
 │   └── CT-120-qbit-vpn/
 ├── Proxmox-Config/           (tar /etc/pve/ diário — backup_proxmox_config.sh)

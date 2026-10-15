@@ -219,7 +219,6 @@ pveapi get /version                              # versão do PVE
 pveapi get /nodes                                # nodes
 pveapi get "/cluster/resources?type=vm"          # lista CTs + VMs
 pveapi get /nodes/vvy/status                     # status do node vvy
-pveapi post /nodes/vvy/lxc/103/status/start      # iniciar CT 103
 ```
 
 **2. SSH ControlMaster (`ssh vvy`) — shells interativos e comandos sem endpoint**

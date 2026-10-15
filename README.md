@@ -29,7 +29,6 @@ graph TB
     subgraph Proxmox VE - vvy
         subgraph Containers LXC
             PH[pihole<br/>CT 101 - DNS]
-            N8N[n8n<br/>CT 103 - Workflows IA]
             HER[hermes-agent<br/>CT 104 - Mensageria IA]
             HB[handbrake<br/>CT 112]
             QB[qbittorrent<br/>CT 120]
@@ -79,7 +78,6 @@ graph TB
 | [Monitoring - Grafana](docs/monitoring-grafana.md) | Grafana 12.4 + Prometheus + Node Exporter                                                 |
 | [Scripts](docs/scripts.md)                         | Scripts de telemetria e automação                                                         |
 | [Docker VM](docs/docker-vm.md)                     | VM Debian 12 com Docker e Portainer                                                       |
-| [n8n Workflows](docs/n8n-workflows.md)             | Orquestração de workflows IA com n8n                                                      |
 | [Hermes Agent](docs/hermes-agent.md)               | Gateway de mensageria IA (Telegram) + backend remoto via Tailscale (Desktop App) — CT 104 |
 | [Terraform](docs/terraform-proxmox.md)             | Infraestrutura como Código — provisionamento Proxmox                                      |
 | [Ansible](docs/ansible-proxmox.md)                 | Configuração como Código — automação de tarefas                                           |

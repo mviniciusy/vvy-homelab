@@ -16,7 +16,6 @@
 graph LR
     PVE --> LXC101[pihole<br/>CT 101]
    
-    PVE --> LXC103[n8n<br/>CT 103]
     PVE --> LXC104[hermes-agent<br/>CT 104]
     PVE --> LXC105[backup-manager<br/>CT 105]
     PVE --> LXC112[handbrake<br/>CT 112]
@@ -25,7 +24,6 @@ graph LR
     PVE --> LXC161[grafana<br/>CT 161]
     PVE --> VM200[debian-docker<br/>VM 200]
 
-       style LXC103 fill:#4caf50,stroke:#2e7d32,color:#fff
     style LXC104 fill:#9c27b0,stroke:#6a1b9a,color:#fff
     style LXC105 fill:#00bcd4,stroke:#006064,color:#fff
     style VM200 fill:#42a5f5,stroke:#1565c0,color:#fff
@@ -36,7 +34,6 @@ graph LR
 |ID|Nome|IP|Cores|Storage|Serviço|
 |---|---|---|---|---|---|
 |101|pihole|`<PIHOLE_IP>`|2|local-lvm|Pi-hole – DNS/bloqueio anúncios|
-|103|n8n|`<N8N_IP>`|4|nvme128:20G|n8n – orquestração de workflows IA|
 |104|hermes-agent|`<HERMES_IP>`|8|nvme128:16G|Hermes Agent – gateway de mensageria IA|
 |105|backup-manager|`<BACKUP_MANAGER_IP>`|2|nvme128:4G|rclone – sync espelhado Google Drive + Web GUI|
 |112|handbrake|`<HANDBRAKE_IP>`:5800|2|local-lvm|Handbrake – transcodificação|
