@@ -20,7 +20,6 @@
 |Host|IP|Agent|Template|
 |---|---|---|---|
 |Zabbix server|127.0.0.1|zabbix-agent (interno)|Linux by Zabbix agent, Zabbix server health|
-|nextcloud|`<NEXTCLOUD_IP>`|zabbix-agent|Linux by Zabbix agent|
 |pihole|`<PIHOLE_IP>`|zabbix-agent|Linux by Zabbix agent|
 |qbittorrent|`<QBITTORRENT_IP>`|zabbix-agent (UFW: 10050 liberada)|Linux by Zabbix agent|
 |vvy|`<HOST_IP>`|zabbix-agent2 (Debian Trixie)|Linux by Zabbix agent|

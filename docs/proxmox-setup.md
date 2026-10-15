@@ -14,7 +14,6 @@
 
 ```mermaid
 graph LR
-    PVE[Proxmox VE 9.1.6<br/>vvy - HOST_IP] --> LXC100[nextcloud<br/>CT 100]
     PVE --> LXC101[pihole<br/>CT 101]
    
     PVE --> LXC103[n8n<br/>CT 103]
@@ -36,7 +35,6 @@ graph LR
 
 |ID|Nome|IP|Cores|Storage|Serviço|
 |---|---|---|---|---|---|
-|100|nextcloud|`<NEXTCLOUD_IP>`|2|HD-WD500GB|Nextcloud – nuvem privada|
 |101|pihole|`<PIHOLE_IP>`|2|local-lvm|Pi-hole – DNS/bloqueio anúncios|
 |103|n8n|`<N8N_IP>`|4|nvme128:20G|n8n – orquestração de workflows IA|
 |104|hermes-agent|`<HERMES_IP>`|8|nvme128:16G|Hermes Agent – gateway de mensageria IA|

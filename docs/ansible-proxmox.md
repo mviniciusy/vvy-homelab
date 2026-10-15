@@ -43,7 +43,6 @@ O inventário deve listar todos os containers e VMs do homelab:
 vvy ansible_host=<HOST_IP>
 
 [lxc_containers]
-nextcloud ansible_host=<NEXTCLOUD_IP>
 pihole    ansible_host=<PIHOLE_IP>
 ollama    ansible_host=<OLLAMA_IP>
 n8n       ansible_host=<N8N_IP>

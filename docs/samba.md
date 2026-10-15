@@ -33,7 +33,6 @@ Existem dois shares apontando para o mesmo disco WD-500GB com paths diferentes:
 - **[HD-WD500GB]** aponta para `/mnt/pve/HD-WD500GB/Dados-WD500GB/` (subpasta). Windows ve direto o conteudo de Dados-WD500GB.
 
 **Por que nao unificar:** CTs dependem dos paths atuais.
-- CT 100: mount point `/mnt/HD-WD500GB` <- bind de `/mnt/pve/HD-WD500GB` (raiz)
 - CT 104: mount point `/mnt/tiktok` <- bind de `/mnt/pve/HD-WD500GB/Dados-WD500GB/Tiktok/work`
 - CT 105: mount point `/mnt/wd500gb` <- bind de `/mnt/pve/HD-WD500GB/Dados-WD500GB`
 

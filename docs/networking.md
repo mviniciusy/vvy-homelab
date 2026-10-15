@@ -19,7 +19,6 @@ graph TB
     end
 
     subgraph Rede Local 192.168.1.0/24
-        VVV --> |Subnet Router| NEXTCLOUD[nextcloud]
                VVV --> |Subnet Router| N8N[n8n]
         VVV --> |Subnet Router| HERMES[hermes-agent]
         VVV --> |Subnet Router| HANDBRAKE[handbrake]
@@ -61,7 +60,6 @@ graph TB
 
 |Container|URL de Acesso|Método|
 |---|---|---|
-|nextcloud (100)|`http://<NEXTCLOUD_IP>`|Subnet Router|
 |pihole (101)|`http://<PIHOLE_IP>/admin`|Subnet + nó próprio|
 |n8n (103)|`http://<N8N_IP>:5678`|Subnet Router|
 |hermes-agent (104)|`http://<TAILSCALE_HERMES_IP>:9119`|Nó Tailscale próprio (Basic Auth)|

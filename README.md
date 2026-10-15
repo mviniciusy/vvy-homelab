@@ -28,7 +28,6 @@ graph TB
 
     subgraph Proxmox VE - vvy
         subgraph Containers LXC
-            NC[nextcloud<br/>CT 100]
             PH[pihole<br/>CT 101 - DNS]
             N8N[n8n<br/>CT 103 - Workflows IA]
             HER[hermes-agent<br/>CT 104 - Mensageria IA]
