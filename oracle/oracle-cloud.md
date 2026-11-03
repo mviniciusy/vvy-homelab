@@ -186,6 +186,7 @@ Verificado Nov/2026:
 |Containers|vaultwarden + caddy|rodando (healthy)|
 |OpenBot|0.59.0|ativo (ver seção 11 e `docs/openbot.md`)|
 |OpenCode CLI|1.19.5|instalado (usuário `ubuntu`)|
+|Samba|4.x (Ubuntu 24.04)|compartilhamento `oracle` (`/home/ubuntu`) só no IP do Tailscale; `nmbd` desativado|
 |Snap|—|oracle-cloud-agent ativo|
 |cloud-init|—|completo|
 

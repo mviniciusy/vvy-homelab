@@ -136,6 +136,7 @@ ssh root@<TAILSCALE_VVV_IP>  # vvy via Tailscale
 | wakeonlan | — | Envio de magic packet WoL |
 | OpenBot | 0.59.0 | Servidor de agentes de IA (serviço `openbot.service`, limite 12 GB / 3 cores) |
 | OpenCode CLI | 1.19.5 | Agente de código no terminal |
+| Samba | 4.x | Compartilhamento `oracle` só pelo Tailscale (nunca pela internet) |
 
 ---
 
