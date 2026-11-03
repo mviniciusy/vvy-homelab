@@ -184,9 +184,8 @@ Verificado Nov/2026:
 |Tailscale|1.102.2|conectado, `--accept-routes`|
 |fail2ban|1.0.2|jail sshhd ativo|
 |Containers|vaultwarden + caddy|rodando (healthy)|
-|OpenBot|0.59.0|ativo (ver seção 11)|
+|OpenBot|0.59.0|ativo (ver seção 11 e `docs/openbot.md`)|
 |OpenCode CLI|1.19.5|instalado (usuário `ubuntu`)|
-|Java|OpenJDK 21 (JDK + JRE)|instalado; resto do servidor de jogos, sem uso conhecido|
 |Snap|—|oracle-cloud-agent ativo|
 |cloud-init|—|completo|
 

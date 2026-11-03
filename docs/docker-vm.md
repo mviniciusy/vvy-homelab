@@ -23,7 +23,7 @@
 |Data de criação|Abril/2026|
 
 > **Jul/2026:**
-> - SSH root com senha definida (chave `id_ed25519` do notebook; a chave do antigo agente de IA foi removida em 03/Nov/2026).
+> - SSH root com senha definida (chaves `id_ed25519` do notebook e `openbot@vvy-vnic`, esta autorizada em 03/Nov/2026 para o OpenBot da Oracle; a chave do antigo agente de IA foi removida).
 > - Python 3.11.2 presente. Node.js não instalado.
 > - Acesso aos HDs do host: **não montado** — precisa configurar NFS ou bind mount.
 > - Containers rodando: `finai_postgres` (porta 5432), `portainer` (9000/9443).
