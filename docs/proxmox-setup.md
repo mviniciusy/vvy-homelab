@@ -38,7 +38,7 @@ graph LR
 |120|qbit-vpn|`<QBITTORRENT_IP>`:8080|6|local-lvm|qBittorrent – cliente torrent|
 |160|zabbix|`<ZABBIX_IP>`|2|local-lvm (20GB)|Zabbix 7.2 – monitoramento|
 |161|grafana|`<GRAFANA_IP>`|2|local-lvm (10GB)|Grafana 12.4 + Prometheus + Node Exporter|
-|199|minecraft|`192.168.1.199`|8|nvme128|Servidor Minecraft Fabric 1.20.1 (parado, onboot=0)|
+|199|minecraft|`<MINECRAFT_IP>`|8|nvme128|Servidor Minecraft Fabric 1.20.1 (parado, onboot=0)|
 
 ### Máquinas Virtuais
 
