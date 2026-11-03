@@ -29,7 +29,6 @@ graph TB
     subgraph Proxmox VE - vvy
         subgraph Containers LXC
             PH[pihole<br/>CT 101 - DNS]
-            HER[hermes-agent<br/>CT 104 - Mensageria IA]
             HB[handbrake<br/>CT 112]
             QB[qbittorrent<br/>CT 120]
             ZB[zabbix<br/>CT 160]
@@ -56,8 +55,6 @@ graph TB
     Phone -.-> TS
     OCI -.->|SSH + Tailscale + WoL| Router
 
-    style N8N fill:#4caf50,stroke:#2e7d32,color:#fff
-    style HER fill:#9c27b0,stroke:#6a1b9a,color:#fff
     style DK fill:#42a5f5,stroke:#1565c0,color:#fff
     style PH fill:#ff9800,stroke:#e65100,color:#fff
     style OCI fill:#ff9800,stroke:#e65100,color:#fff
@@ -70,7 +67,7 @@ graph TB
 | Documento                                          | Descrição                                                                                 |
 | -------------------------------------------------- | ----------------------------------------------------------------------------------------- |
 | [Hardware](docs/hardware.md)                       | Especificações do servidor (Xeon E5-2470 v2, RAM, SSDs) e do cliente                      |
-| [Proxmox Setup](docs/proxmox-setup.md)             | Virtualização Proxmox VE 9.2.5, containers LXC e VMs                                      |
+| [Proxmox Setup](docs/proxmox-setup.md)             | Virtualização Proxmox VE 9.2.11, containers LXC e VMs                                      |
 | [Storage](docs/storage.md)                         | HDs de dados, pontos de montagem e UUIDs                                                  |
 | [Networking](docs/networking.md)                   | VPN Tailscale, nós, subnet router e acesso remoto                                         |
 | [Backup](docs/backup.md)                           | Sistema de backup — rclone + Google Drive 2TB (CT 105)                                    |
@@ -78,10 +75,9 @@ graph TB
 | [Monitoring - Grafana](docs/monitoring-grafana.md) | Grafana 12.4 + Prometheus + Node Exporter                                                 |
 | [Scripts](docs/scripts.md)                         | Scripts de telemetria e automação                                                         |
 | [Docker VM](docs/docker-vm.md)                     | VM Debian 12 com Docker e Portainer                                                       |
-| [Hermes Agent](docs/hermes-agent.md)               | Gateway de mensageria IA (Telegram) + backend remoto via Tailscale (Desktop App) — CT 104 |
 | [Terraform](docs/terraform-proxmox.md)             | Infraestrutura como Código — provisionamento Proxmox                                      |
 | [Ansible](docs/ansible-proxmox.md)                 | Configuração como Código — automação de tarefas                                           |
-| [Oracle Cloud](oracle/oracle-cloud.md)             | VM vvy-vnic na Oracle Cloud — Arm A1 Flex 4 OCPU / 24 GB (Always Free), extensão remota do homelab           |
+| [Oracle Cloud](oracle/oracle-cloud.md)             | VM vvy-vnic na Oracle Cloud — Arm A1 Flex 4 OCPU / 24 GB (conta PAYG, shape dentro do free), extensão remota do homelab           |
 | [BIOS vvy](docs/bios-vvy.md)                       | Configuração completa da BIOS QIYIDA X79 — C-states, power limits, QPI, ACPI              |
 
 ---
@@ -96,9 +92,8 @@ graph TB
 | [`scripts/backup/clean_lixeira.sh`](scripts/backup/clean_lixeira.sh) | Limpeza da lixeira no Google Drive — retenção 14 dias (cron DOM 04:00) |
 | [`scripts/server-freeze/`](scripts/server-freeze/) | Kit de diagnóstico de travamento — watchdog, diagnóstico pós-reboot e instalador |
 | [`scripts/sync/`](scripts/sync/) | Sincronização privado → público (sync_public.py) |
-| [`scripts/monitoring/vvy-healthcheck-unified.sh`](scripts/monitoring/vvy-healthcheck-unified.sh) | Healthcheck + MCE/EDAC unificados — cronjob Hermes a cada 2h (no_agent=True, script-only) |
-| [`scripts/backup/snapshot_hermes.sh`](scripts/backup/snapshot_hermes.sh) | vzdump CT 104 (hermes) diário + upload Drive | host vvy | Diário 02:30 |
+| [`scripts/monitoring/vvy-healthcheck-unified.sh`](scripts/monitoring/vvy-healthcheck-unified.sh) | Healthcheck + MCE/EDAC unificados (desativado em 03/Nov/2026; base do monitoramento externo planejado) |
 | [`scripts/backup/snapshot_semanal.sh`](scripts/backup/snapshot_semanal.sh) | vzdump CTs 101,199,200,160,161 semanal + upload Drive | host vvy | DOM 01:00 |
-| [`scripts/backup/snapshot_mensal.sh`](scripts/backup/snapshot_mensal.sh) | vzdump CTs 103,112,120 mensal + upload Drive | host vvy | 1º DOM 01:00 |
+| [`scripts/backup/snapshot_mensal.sh`](scripts/backup/snapshot_mensal.sh) | vzdump CTs 112,120 mensal (2º domingo) + upload Drive | host vvy | DOM 01:30 (guarda dias 8-14) |
 | [`scripts/backup/backup_proxmox_config.sh`](scripts/backup/backup_proxmox_config.sh) | tar /etc/pve/ + configs Proxmox + upload Drive | host vvy | Diário 02:00 |
 | [`scripts/backup/sync_root.sh`](scripts/backup/sync_root.sh) | tar.gz 7 pastas /root + upload Drive | host vvy | QUA 03:00 |

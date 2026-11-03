@@ -567,7 +567,7 @@ ssh root@<HOST_IP> 'dmesg -T | grep -i "qpi\|quickpath"'
 
 ### Observação 24-48h
 - Heartbeat Oracle VM deve reportar uptime crescente sem alertas de offline
-- Healthcheck unificado (cronjob Hermes a cada 2h) deve reportar OK
+- Verificar os indicadores do healthcheck manualmente (heartbeat-watchdog sem reinícios, CE/UE de RAM, SMART, load); o job automático de 2 em 2 h foi desativado em 03/Nov/2026
 - Se freeze em idle persistir: aplicar Fase B (desabilitar C3/C6/Package C State)
 - Se freeze sob carga persistir: power limits não foram suficientes — considerar undervolt adicional ou troca de placa-mãe
 
@@ -599,7 +599,7 @@ Todas as alterações são reversíveis via BIOS:
 
 ## 7. Referências
 
-- Contexto completo do problema: `vvy-hard-freeze-contexto-completo.md` (incluído no hermes-export.tar.gz)
+- Contexto completo do problema: `vvy-hard-freeze-contexto-completo.md` (incluído no agente-export.tar.gz)
 - Skill de diagnóstico: `proxmox/references/proxmox-stability-diagnosis.md`
 - Documentação master do servidor: `/root/1 Documentação Privada/PROXMOX_VVY.md` (no host vvy)
 - Fotos originais da BIOS: pasta `bios/` (32 arquivos .jpg)

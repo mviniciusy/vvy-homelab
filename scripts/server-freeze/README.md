@@ -17,7 +17,7 @@ scripts-server-freeze/
     ├── server-watchdog.sh             # Monitoramento a cada 1 min (via cron)
     ├── post-reboot-diagnosis.sh       # Diagnóstico após reboot (executar após travamento)
     ├── heartbeat-watchdog.sh          # Heartbeat de reboot automático (iTCO_wdt + softdog backup + SysRq)
-    ├── mce-collector.sh              # Coleta métricas MCE/EDAC para análise LLM (cron Hermes 5 min)
+    ├── mce-collector.sh              # Coleta métricas MCE/EDAC para análise LLM (job externo desativado em 03/Nov/2026)
 ```
 
 ## Scripts em Uso no Servidor
@@ -27,7 +27,7 @@ scripts-server-freeze/
 | `server-watchdog.sh` | `/usr/local/bin/server-watchdog.sh` | Cron a cada 1 min — registra memória, CPU, disco, rede |
 | `post-reboot-diagnosis.sh` | `/usr/local/bin/post-reboot-diagnosis.sh` | Diagnóstico completo após reboot |
 | `heartbeat-watchdog.sh` | `/usr/local/bin/heartbeat-watchdog.sh` | Serviço systemd — ping no iTCO_wdt (hardware watchdog) a cada 10s, reboot automático se travar |
-| `mce-collector.sh` | `/usr/local/bin/mce-collector.sh` | Coleta métricas EDAC/MCE → JSON para análise por LLM (cron Hermes 5 min) |
+| `mce-collector.sh` | `/usr/local/bin/mce-collector.sh` | Coleta métricas EDAC/MCE → JSON para análise por LLM (job externo desativado em 03/Nov/2026) |
 | `install.sh` | (usado apenas na instalação) | Instala todos os componentes acima |
 
 ## Instalação Rápida
@@ -114,7 +114,7 @@ sudo /usr/local/bin/post-reboot-diagnosis.sh
 O `mce-collector.sh` coleta métricas de erro de memória ECC e as grava em JSON para análise:
 
 ```
-mce-collector.sh → /var/log/mce-snapshot.json → Cron job Hermes (5 min)
+mce-collector.sh → /var/log/mce-snapshot.json → (consumidor externo desativado em 03/Nov/2026)
                                               → LLM analisa (nvidia/nemotron-3-ultra-550b-a55b)
                                               → Alerta Telegram se preciso
                                               → Silencioso se tudo OK

@@ -111,7 +111,7 @@ Regras ACCEPT para 80/443 inseridas **antes** do REJECT catch-all (linha 7) e pe
 ### SSH (internet)
 
 ```bash
-ssh -i /root/.ssh/oracle-vm.key ubuntu@<ORACLE_PUBLIC_IP>
+ssh ubuntu@<ORACLE_PUBLIC_IP>   # chave ed25519 do notebook
 ```
 
 ### SSH via Tailscale (Oracle VM → vvy)
@@ -125,7 +125,7 @@ ssh root@<TAILSCALE_VVV_IP>  # vvy via Tailscale
 
 ---
 
-## Software Instalado (verificado Set/2026)
+## Software Instalado (verificado Nov/2026)
 
 | Software | Versão | Função |
 |---|---|---|
@@ -134,6 +134,8 @@ ssh root@<TAILSCALE_VVV_IP>  # vvy via Tailscale
 | Tailscale | 1.102.2 | VPN mesh — `--accept-routes` ativo |
 | fail2ban | 1.0.2 | Proteção SSH |
 | wakeonlan | — | Envio de magic packet WoL |
+| OpenBot | 0.59.0 | Servidor de agentes de IA (serviço `openbot.service`, limite 12 GB / 3 cores) |
+| OpenCode CLI | 1.19.5 | Agente de código no terminal |
 
 ---
 
@@ -158,6 +160,19 @@ ssh root@<TAILSCALE_VVV_IP>  # vvy via Tailscale
 
 > Ver `oracle/vaultwarden/README.md` para documentação completa da stack.
 
+### OpenBot e OpenCode (desde 03/Nov/2026)
+
+| Item | Valor |
+|---|---|
+| OpenBot | 0.59.0 (servidor), serviço `openbot.service`, usuário `openbot`, servidor "OpenBot VPS", conta `<OCI_TENANCY_EMAIL>` |
+| Rede | não publica porta; conecta para fora e é acessado pelos apps (desktop, celular, navegador) |
+| Limites | `MemoryHigh=10G`, `MemoryMax=12G`, `CPUQuota=300%` em `/etc/systemd/system/openbot.service.d/limits.conf` |
+| Dados | `/var/lib/openbot` e chave de criptografia em `/srv/openbot-hosted` (backup dos dois juntos) |
+| OpenCode CLI | 1.19.5, usuário `ubuntu`, credencial em `~/.local/share/opencode/auth.json` |
+| OpenCode do OpenBot | runtime próprio 2.2.5 com banco de credenciais separado; login: `sudo -u openbot -H bash -c 'cd ~ && <runtime>/bin/opencode auth login opencode --method device'` |
+| Provedores no app | NVIDIA NIM (NV1 a NV3, personalizados) e OpenCode; modelos gratuitos `opencode/*-free` dividem uma cota compartilhada e podem falhar |
+
+Comandos: `sudo openbot status`, `sudo openbot logs -f`, `sudo openbot restart`, `sudo openbot update`, `systemd-cgtop`. Detalhes e pitfalls: `PROXMOX_VVY.md` seção 20.8 e a skill `proxmox-ai-integration`.
 ### Anti-idle Oracle Cloud
 
 | Item | Valor |

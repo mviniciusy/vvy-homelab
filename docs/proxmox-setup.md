@@ -8,7 +8,7 @@
 
 - **IP Host Local:** `<HOST_IP>`
 
-- **Kernel:** `6.17.13-6-pve` (kernel 7.0 removido)
+- **Kernel:** `6.17.13-21-pve` (kernel 7.0 removido)
 
 ### Diagrama da Arquitetura Proxmox
 
@@ -16,15 +16,14 @@
 graph LR
     PVE --> LXC101[pihole<br/>CT 101]
    
-    PVE --> LXC104[hermes-agent<br/>CT 104]
     PVE --> LXC105[backup-manager<br/>CT 105]
     PVE --> LXC112[handbrake<br/>CT 112]
     PVE --> LXC120[qbittorrent<br/>CT 120]
     PVE --> LXC160[zabbix<br/>CT 160]
     PVE --> LXC161[grafana<br/>CT 161]
+    PVE --> LXC199[minecraft<br/>CT 199 - parado]
     PVE --> VM200[debian-docker<br/>VM 200]
 
-    style LXC104 fill:#9c27b0,stroke:#6a1b9a,color:#fff
     style LXC105 fill:#00bcd4,stroke:#006064,color:#fff
     style VM200 fill:#42a5f5,stroke:#1565c0,color:#fff
 ```
@@ -34,12 +33,12 @@ graph LR
 |ID|Nome|IP|Cores|Storage|Serviço|
 |---|---|---|---|---|---|
 |101|pihole|`<PIHOLE_IP>`|2|local-lvm|Pi-hole – DNS/bloqueio anúncios|
-|104|hermes-agent|`<HERMES_IP>`|8|nvme128:16G|Hermes Agent – gateway de mensageria IA|
 |105|backup-manager|`<BACKUP_MANAGER_IP>`|2|nvme128:4G|rclone – sync espelhado Google Drive + Web GUI|
-|112|handbrake|`<HANDBRAKE_IP>`:5800|2|local-lvm|Handbrake – transcodificação|
-|120|qbittorrent|`<QBITTORRENT_IP>`:8080|6|local-lvm|qBittorrent – cliente torrent|
+|112|handbrake|`<HANDBRAKE_IP>`:5800|6|local-lvm|Handbrake – transcodificação (parado)|
+|120|qbit-vpn|`<QBITTORRENT_IP>`:8080|6|local-lvm|qBittorrent – cliente torrent|
 |160|zabbix|`<ZABBIX_IP>`|2|local-lvm (20GB)|Zabbix 7.2 – monitoramento|
 |161|grafana|`<GRAFANA_IP>`|2|local-lvm (10GB)|Grafana 12.4 + Prometheus + Node Exporter|
+|199|minecraft|`192.168.1.199`|8|nvme128|Servidor Minecraft Fabric 1.20.1 (parado, onboot=0)|
 
 ### Máquinas Virtuais
 

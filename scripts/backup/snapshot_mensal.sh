@@ -1,5 +1,5 @@
 #!/bin/bash
-# snapshot_mensal.sh — Backup mensal de CTs (103,112,120) via vzdump
+# snapshot_mensal.sh — Backup mensal de CTs (112,120) via vzdump
 #
 # Fluxo para cada vmid: vzdump <vmid> → upload rclone (via CT 105) → retention local (3) + remota (3, keep)
 #
@@ -7,7 +7,6 @@
 # Storage: backup-dump    (dir:/mnt/pve/HD-WD500GB/vzdump, content=backup)
 # Drive:   1. vvy/vvy-server-backup/SSD-{NVMe|SATA}-128GB/CT-<id>-<hostname>/
 #
-#   NVMe:  CT-103-n8n
 #   SATA:  CT-112-handbrake, CT-120-qbit-vpn
 #
 set -euo pipefail
@@ -32,7 +31,6 @@ LOCK="/tmp/${SCRIPT_NAME}.lock"
 
 # Tabela vmid|tipo|hostname|ssd_dir
 ENTRIES=(
-    "103|CT|n8n|SSD-NVMe-128GB"
     "112|CT|handbrake|SSD-SATA-128GB"
     "120|CT|qbit-vpn|SSD-SATA-128GB"
 )

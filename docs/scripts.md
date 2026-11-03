@@ -17,7 +17,7 @@
 |---|---|
 |Localização|`/usr/local/bin/server-watchdog.sh` – no node Proxmox (vvy)|
 |Log|`/var/log/watchdog/server-state.log`|
-|Execução|A cada 1 minuto via CronJob|
+|Execução|Previsto: a cada 1 minuto via CronJob — **não está no `crontab -l` do root em 03/Nov/2026** (log parou em 06/Ago); reinstalar via `scripts/server-freeze/bash/install.sh` se desejado|
 |Retenção|Últimos 50.000 registros (rotação automática — aumentado de 10.000 em 13/Mai/2026)|
 |Métricas|Memória/Swap, Load Average, Top CPU/MEM, Disk I/O, Disk Space, Inodes, Network conns, Zombies|
 
@@ -45,7 +45,7 @@
 |Log|`/var/log/vvy-monitor.log` (rotação 5000 linhas)|
 |Execução|Cron a cada 1 min via `/etc/cron.d/vvy-heartbeat`|
 |Método|Ping Tailscale para vvy (<TAILSCALE_VVV_IP>), 3 falhas consecutivas = offline|
-|Alerta|Telegram bot `@hermesvvy_bot` (chat <TELEGRAM_CHAT_ID>)|
+|Alerta|Telegram bot `<bot-telegram>` (chat <TELEGRAM_CHAT_ID>)|
 |Eventos|Offline (após 3 falhas), lembrete a cada 30 min, recuperação|
 |Proteções|`flock` contra execução simultânea, rotação automática de log|
 
@@ -55,8 +55,8 @@
 
 |Item|Detalhe|
 |---|---|
-|Localização|`~/.hermes/scripts/vvy-healthcheck-unified.sh` no CT 104 (hermes-agent) + repo `scripts/monitoring/`|
-|Execução|Cronjob do Hermes Agent a cada 2 horas (no_agent=True, script-only)|
+|Localização|repositório: `scripts/monitoring/vvy-healthcheck-unified.sh` (o job no CT 104 não existe mais)|
+|Execução|**Desativado em 03/Nov/2026.** Rodava a cada 2 horas como job do agente no CT 104 (destruído). Base do monitoramento externo planejado pela Oracle (ver planejamento)|
 |Comportamento|Silencioso se tudo OK, alerta se detectar problemas|
 |Verificações|heartbeat restart counter, WatchdogSec regression, load average, SMART discos, kernel errors (OOM/MCE/hardware), uptime recente, CE/UE RAM (EDAC/MCE)|
 

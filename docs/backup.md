@@ -112,21 +112,9 @@ Upload de snapshots vzdump para Google Drive:
 
 Scripts executados no **host vvy** (vzdump + tar + sync para CT 105):
 
-### snapshot_hermes.sh (host vvy) — Fase 5
+### Backup diário do CT 104: removido (03/11/2026)
 
-vzdump do CT 104 (Hermes Agent) diario:
-- Destino: storage backup-dump (/mnt/pve/HD-WD500GB/Dados-WD500GB/vzdump)
-- Conteudo: CT 104 (Hermes Agent completo)
-- Cron: diario 02:45
-- Retention local: 3 backups mais recentes (contagem, via find)
-- Retention Drive (rclone_keep.sh): 3 backups mais recentes (contagem)
-- Log: /var/log/snapshot_hermes.log
-- Fix 03/10/2026: limpeza preventiva de snapshots LVM órfãos (`snap_*_vzdump` em nvme128) antes do
-  vzdump. O vzdump pode falhar no meio e deixar o snapshot LVM preso (erro real: em 29/09/2026 o
-  cleanup falhou com "no lock found trying to remove 'backup' lock", deixando
-  `snap_vm-104-disk-0_vzdump` órfão e abortando todos os backups subsequentes com "already exists").
-  A limpeza remove qualquer snapshot órfão inativo antes de tentar o novo vzdump.
-
+O CT 104 foi destruído e o job `snapshot_hermes.sh` (vzdump diário às 02:45) saiu do crontab; o script foi movido para `/root/scripts/backup/desativados/`. Os 3 backups completos mais recentes do CT 104 (31/10 a 02/11, ~6 GB cada) e restos de execuções interrompidas continuam em `backup-dump` sem rotação; as cópias no Google Drive (pasta `CT-104-hermes-agent/`) serão apagadas manualmente.
 
 ### snapshot_semanal.sh (host vvy) — Fase 5
 
@@ -174,8 +162,7 @@ Backup semanal de 7 pastas de /root:
 ├── HD-WD-1TB/                (mp1: pasta "1. Geral" do HD WD 1TB — sync segunda)
 │   └── 1. Geral/
 ├── HD-WD500GB/               (mp0: dados do HD WD 500GB — sync terça)
-├── SSD-NVMe-128GB/           (vzdump de CTs/VMs no NVMe — snapshot_hermes.sh, snapshot_semanal.sh)
-│   ├── CT-104-hermes-agent/
+├── SSD-NVMe-128GB/           (vzdump de CTs/VMs no NVMe — snapshot_semanal.sh)
 │   ├── CT-199-minecraft/
 │   └── VM-200-debian/
 ├── SSD-SATA-128GB/           (vzdump de CTs no SATA — snapshot_semanal.sh, snapshot_mensal.sh)
@@ -228,11 +215,11 @@ Os scripts de snapshot usavam `find -name "vzdump-*${VMID}*"` na retention local
 
 ### OAuth do Google Drive expira em 7 dias (modo teste) — RESOLVIDO
 
-O app `vvy-backup` no Google Cloud Console estava em "modo teste" (nao publicado). O Google revoga refresh tokens de apps de teste apos 7 dias sem uso. Sintoma: `invalid_grant` / "Token has been expired or revoked". O token OAuth foi revogado em 05/08/2026 (apos 7 dias sem uso), causando falha em todos os uploads de 05-07/08. Reautorizado em 08/08/2026. **ATUALIZACAO 17/08/2026 (19h)**: token reautorizado com sucesso via flow OOB (redirect localhost:53682). `refresh_token_expires_in` AUSENTE — token sem expiracao por tempo. `rclone lsd gdrive:` OK. Uploads pendentes reenviados (config 16-17/08, hermes 17/08). **ATENCAO**: nao reautorizar novamente sem necessidade — cada reautorizacao gera um novo token e Google revoga silenciosamente os mais antigos (~50 por cliente).
+O app `vvy-backup` no Google Cloud Console estava em "modo teste" (nao publicado). O Google revoga refresh tokens de apps de teste apos 7 dias sem uso. Sintoma: `invalid_grant` / "Token has been expired or revoked". O token OAuth foi revogado em 05/08/2026 (apos 7 dias sem uso), causando falha em todos os uploads de 05-07/08. Reautorizado em 08/08/2026. **ATUALIZACAO 17/08/2026 (19h)**: token reautorizado com sucesso via flow OOB (redirect localhost:53682). `refresh_token_expires_in` AUSENTE — token sem expiracao por tempo. `rclone lsd gdrive:` OK. Uploads pendentes reenviados (config 16-17/08, agente 17/08). **ATENCAO**: nao reautorizar novamente sem necessidade — cada reautorizacao gera um novo token e Google revoga silenciosamente os mais antigos (~50 por cliente).
 
 ### Crontab do root perdido (07/08/2026) — RESOLVIDO
 
-O `/var/spool/cron/crontabs/root` foi reinstalado vazio em 07/08 12:45:05 — apenas o header, sem nenhum job. Os 5 cronjobs de backup foram perdidos. Restaturado em 08/08 com os 5 jobs + `PATH=/usr/sbin:/usr/bin:/sbin:/bin` no header. O `backup_proxmox_config.sh` coleta o crontab para /tmp/ mas nao inclui no tar.gz — o arquivo em /tmp e limpo pelo sistema. Pendencia: adicionar crontab ao tar.gz do backup_proxmox_config.sh.
+O `/var/spool/cron/crontabs/root` foi reinstalado vazio em 07/08 12:45:05 — apenas o header, sem nenhum job. Os 5 cronjobs de backup foram perdidos. Restaturado em 08/08 com os 5 jobs + `PATH=/usr/sbin:/usr/bin:/sbin:/bin` no header. O `backup_proxmox_config.sh` coleta o crontab para /tmp/ e o inclui no tar.gz como `root-crontab.txt` (via `--transform`; confirmado no script em 03/11/2026) — o crontab ja e restauravel a partir do backup diario.
 
 ### PATH do cron (corrigido 07/08/2026)
 
@@ -260,6 +247,8 @@ Documento detalhado em \\<HOST_IP>\HD-WD-500GB\Dados-WD500GB\Plano_Backup\:
 - [x] Fase 3 — Web GUI (rclone rcd porta 5572)
 - [x] Fase 4 — Scripts de sync dos HDs + lixeira (14 dias) + cronjobs
 - [x] Fase 4-bis — Backup dos arquivos em /root (sync_root.sh, 7 pastas, semanal QUA 03:00)
-- [x] Fase 5 — Scripts de snapshot (snapshot_hermes.sh, snapshot_semanal.sh, snapshot_mensal.sh + sync_snapshots.sh)
+- [x] Fase 5 — Scripts de snapshot (snapshot_semanal.sh, snapshot_mensal.sh + sync_snapshots.sh; o do CT 104 foi retirado em 03/11/2026)
 - [x] Fase 6 — Script de config Proxmox (backup_proxmox_config.sh, tar /etc/pve/ diário 02:00)
-- [ ] Fase 7 — Validação e restore de teste
+- [ ] Fase 7 — Validação e restore de teste (pendente: restaurar CT do Drive, restaurar arquivo da lixeira, documentar procedimento de restore)
+
+> **Nota (03/11/2026):** CT 199 (minecraft) continua em `snapshot_semanal.sh` mesmo parado (onboot=0). CT 100 (nextcloud), CT 103 (n8n) e CT 130 (alist) foram destruídos e não constam em nenhum script.

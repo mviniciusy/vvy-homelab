@@ -44,8 +44,8 @@ vvy ansible_host=<HOST_IP>
 
 [lxc_containers]
 pihole    ansible_host=<PIHOLE_IP>
-ollama    ansible_host=<OLLAMA_IP>
-hermes    ansible_host=<HERMES_IP>
+backup    ansible_host=<BACKUP_MANAGER_IP>
+handbrake ansible_host=<HANDBRAKE_IP>
 qbit      ansible_host=<QBITTORRENT_IP>
 zabbix    ansible_host=<ZABBIX_IP>
 grafana   ansible_host=<GRAFANA_IP>

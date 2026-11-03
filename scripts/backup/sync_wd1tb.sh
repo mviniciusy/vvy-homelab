@@ -1,15 +1,12 @@
 #!/usr/bin/env bash
 #
-# sync_wd1tb.sh — Sync espelhado do HD-WD-1TB para Google Drive via rclone
+# sync_wd1tb.sh — Sync da pasta "1. Geral" do HD-WD-1TB para Google Drive via rclone
 #
 # Uso: bash sync_wd1tb.sh [--dry-run]
 #
 # O que faz:
-#   rclone sync do HD-WD-1TB (NTFS, /mnt/wd1tb) -> gdrive:"1. vvy/vvy-server-backup"/HD-WD-1TB/
+#   rclone sync de /mnt/wd1tb/1. Geral/ -> gdrive:"1. vvy/vvy-server-backup"/HD-WD-1TB/1. Geral/
 #   Arquivos removidos localmente -> movidos para lixeira com timestamp (NÃO deletados)
-#
-# Exclusões:
-#   ISOs/ — imagens ISO recuperáveis (Windows, Kali, Proxmox), ~10 GB
 #
 # Retenção da lixeira: 14 dias (ver clean_lixeira.sh)
 #
@@ -24,11 +21,12 @@ set -euo pipefail
 
 # === Configuração ===
 DRIVE_BASE="gdrive:1. vvy/vvy-server-backup"
-SOURCE="/mnt/wd1tb"
-DEST="${DRIVE_BASE}/HD-WD-1TB/"
+MOUNT="/mnt/wd1tb"
+SOURCE="${MOUNT}/1. Geral"
+DEST="${DRIVE_BASE}/HD-WD-1TB/1. Geral/"
 TODAY=$(date +%Y-%m-%d)
 BACKUP_DIR="${DRIVE_BASE}/lixeira/HD-WD-1TB/${TODAY}"
-RCLONE_OPTS="--verbose --transfers=8 --drive-chunk-size=64M --checkers=16 --exclude=ISOs/** --exclude=WavesCentral14.17.01.23.W/**"
+RCLONE_OPTS="--verbose --transfers=8 --drive-chunk-size=64M --checkers=16"
 LOGFILE="/var/log/sync_wd1tb.log"
 LOCKFILE="/tmp/sync_wd1tb.lock"
 
@@ -51,8 +49,13 @@ echo "" >> "$LOGFILE"
 echo "[$(date '+%Y-%m-%d %H:%M:%S')] === Iniciando sync HD-WD-1TB ===" | tee -a "$LOGFILE"
 
 # === Verificar se o mount point está acessível ===
-if ! mountpoint -q "$SOURCE"; then
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] ERRO: $SOURCE não está montado. Abortando." | tee -a "$LOGFILE"
+if ! mountpoint -q "$MOUNT"; then
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] ERRO: $MOUNT não está montado. Abortando." | tee -a "$LOGFILE"
+    exit 1
+fi
+
+if [[ ! -d "$SOURCE" ]]; then
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] ERRO: $SOURCE não existe. Abortando." | tee -a "$LOGFILE"
     exit 1
 fi
 

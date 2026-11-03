@@ -23,7 +23,7 @@
 |Data de criação|Abril/2026|
 
 > **Jul/2026:**
-> - SSH root com senha definida (chave `id_ed25519` do notebook + Hermes instaladas).
+> - SSH root com senha definida (chave `id_ed25519` do notebook; a chave do antigo agente de IA foi removida em 03/Nov/2026).
 > - Python 3.11.2 presente. Node.js não instalado.
 > - Acesso aos HDs do host: **não montado** — precisa configurar NFS ou bind mount.
 > - Containers rodando: `finai_postgres` (porta 5432), `portainer` (9000/9443).
@@ -60,14 +60,14 @@
 - Metasearch que agrega 70+ motores (Google, Bing, DuckDuckGo, etc.)
 - Retorna resultados em JSON (`format=json` na query string)
 - Sem API key, sem limite de uso, sem custo
-- Usado pelo Hermes Agent (CT 104) como backend de `web_search` via
+- Era usado pelo agente de IA do CT 104 (destruído em 03/Nov/2026) como backend de `web_search` via
   `SEARXNG_URL=http://<DOCKER_VM_IP>:8888` no `.env` e
   `web.backend: searxng` no `config.yaml`
 
 ### Comandos
 
 ```bash
-# Gerenciar via qm guest exec (do CT 104)
+# Gerenciar via qm guest exec (a partir do host Proxmox)
 ssh root@<HOST_IP> 'qm guest exec 200 -- docker compose -f /root/searxng/docker-compose.yml up -d'
 ssh root@<HOST_IP> 'qm guest exec 200 -- docker compose -f /root/searxng/docker-compose.yml down'
 
@@ -81,7 +81,7 @@ ssh root@<HOST_IP> 'qm guest exec 200 -- docker logs searxng --tail 20'
 ### Web Extract (alternativa)
 
 O SearXNG é search-only (não faz extract de URL). Para extrair conteúdo
-de páginas em markdown, o Hermes usa o **Jina Reader SaaS** (`r.jina.ai`)
+de páginas em markdown, o agente de IA usava o **Jina Reader SaaS** (`r.jina.ai`)
 via `curl` — grátis, sem API key, sem self-hosting:
 
 ```bash
@@ -146,3 +146,71 @@ docker compose build app && docker compose up -d
 - Google OAuth só ativa se `GOOGLE_CLIENT_ID/SECRET` estiverem no compose — não configurado.
 - **Set/2026:** containers desativados intencionalmente em 01/Set (`docker stop` em app-1, postgres-1 e collector-1 — encerra o restart loop do collector; imagens e volumes preservados). Site offline até novo `docker compose up -d`.
 - VM 200 não roda tailscaled, mas é alcançável de fora da LAN via subnet routing do vvy (`192.168.1.0/24` anunciado no Tailscale) — o link `http://<DOCKER_VM_IP>:3000` funciona de qualquer lugar com o cliente conectado.
+
+---
+
+## 4. OmniRoute — Gateway de Modelos de IA (Set/2026)
+
+|Parâmetro|Valor|
+|---|---|
+|Containers|`omniroute-prod` (`diegosouzapw/omniroute:latest`) + `omniroute-redis-prod` (`redis:8.6.2-alpine`)|
+|Compose|`/mnt/dados/omniroute/docker-compose.yml` (projeto `omniroute`; a pasta é um clone do projeto, com `Dockerfile`, `.env` e `docker-compose.prod.yml`)|
+|Portas (host → container)|`20130 → 20128` (painel web) · `20131 → 20129` (API)|
+|Endpoint (OpenAI-compatível)|`http://<DOCKER_VM_IP>:20130/v1`; sem consumidor configurado desde a remoção do CT 104 (03/Nov/2026)|
+|Dados|volumes Docker `omniroute-prod-data` (`/app/data`) e `omniroute-redis-data` (`/data`); chaves e senha inicial no `.env`/compose (**sem valores aqui**)|
+|Limites|`omniroute-prod` 2 GB de RAM; Redis 256 MB, `--save 60 1`|
+|Restart|`unless-stopped`; o app só sobe depois do Redis saudável (`healthcheck` com `redis-cli ping`); estado em 03/Nov/2026: ambos `healthy`|
+|Função|Roteador/gateway que expõe vários provedores de modelos por uma API compatível com OpenAI, com painel de gerenciamento|
+
+Comandos:
+
+```bash
+# Via host Proxmox (a VM 200 aceita qm guest exec)
+ssh root@<HOST_IP> 'qm guest exec 200 -- docker ps --filter name=omniroute'
+ssh root@<HOST_IP> 'qm guest exec 200 -- docker logs omniroute-prod --tail 50'
+ssh root@<HOST_IP> 'qm guest exec 200 -- docker compose -f /mnt/dados/omniroute/docker-compose.yml up -d'
+# Teste local na VM (o painel responde com redirecionamento 307)
+curl -s -o /dev/null -w "%{http_code}\n" http://<DOCKER_VM_IP>:20130/
+```
+
+Observações:
+- Variantes antigas da imagem foram removidas na limpeza de 01/Set/2026 (ver seção 1).
+- O Redis é local ao stack; não há porta do Redis exposta no host.
+
+---
+
+## 5. Gemini-FastAPI — API compatível com OpenAI para o Gemini (Set/2026)
+
+|Parâmetro|Valor|
+|---|---|
+|Container|`gemini-fastapi` (`ghcr.io/nativu5/gemini-fastapi:latest`), criado em 29/Ago/2026|
+|Compose|`/mnt/dados/gemini-fastapi/docker-compose.yml` (existem `.bak.20260822-164446` e `.bak.20260829-134103` na pasta)|
+|Porta|`4981 → 8000`; documentação interativa em `/docs`|
+|Endpoint (OpenAI-compatível)|`http://<DOCKER_VM_IP>:4981/v1`; sem consumidor configurado desde a remoção do CT 104 (03/Nov/2026)|
+|Dados|`./data` (`images/`, `lmdb/`) e `./cache` (cookies em cache, arquivos 0600) em `/mnt/dados/gemini-fastapi/`|
+|Autenticação|chave de API do próprio serviço e **cookies de sessão do Google** passados por variáveis de ambiente no compose (**valores não documentados**)|
+|Restart|`unless-stopped`; estado em 03/Nov/2026: no ar há 6 dias, `/docs` responde 200|
+|Função|Expõe o Gemini (sessão web) como API no formato OpenAI para o agente e outras ferramentas|
+
+Pendência de segurança: o `docker-compose.yml` guarda os cookies de sessão em texto puro com permissão 0644. Mover os valores para um `.env` com permissão 0600 (e referenciá-lo no compose) reduz a exposição; trocar a sessão do Google invalida os cookies antigos.
+
+Comandos:
+
+```bash
+ssh root@<HOST_IP> 'qm guest exec 200 -- docker logs gemini-fastapi --tail 50'
+ssh root@<HOST_IP> 'qm guest exec 200 -- docker compose -f /mnt/dados/gemini-fastapi/docker-compose.yml up -d'
+curl -s -o /dev/null -w "%{http_code}\n" http://<DOCKER_VM_IP>:4981/docs
+```
+
+---
+
+## 6. Conteúdo de `/mnt/dados` (disco de dados de 100 GB, 1% usado)
+
+|Pasta|Tamanho|Situação|
+|---|---|---|
+|`omniroute/`|273 MB|ativa (seção 4)|
+|`gemini-fastapi/`|19 MB|ativa (seção 5)|
+|`lost+found/`|16 KB|sistema de arquivos|
+
+
+O disco de dados é o `scsi1` da VM (`backup=0`, fora do vzdump). Ele guarda configs e dados das aplicações acima, **não** as imagens Docker (essas ficam em `/var/lib/containerd` no disco de sistema). O `fstab` usa UUID com `nofail`.

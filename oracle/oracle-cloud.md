@@ -136,7 +136,7 @@ oci network security-list update --security-list-id $SL \
 ### SSH (internet)
 
 ```bash
-ssh -i /root/.ssh/oracle-vm.key ubuntu@<ORACLE_PUBLIC_IP>
+ssh ubuntu@<ORACLE_PUBLIC_IP>   # chave ed25519 do notebook; pelo Tailscale: ssh ubuntu@<TAILSCALE_ORACLE_VM_IP>
 ```
 
 |Item|Valor|
@@ -150,9 +150,8 @@ ssh -i /root/.ssh/oracle-vm.key ubuntu@<ORACLE_PUBLIC_IP>
 
 |Item|Caminho|
 |---|---|
-|Chave privada (CT 104)|`/root/.ssh/oracle-vm.key`|
-|Chave privada (servidor vvy)|`/mnt/pve/HD-WD500GB/Dados-WD500GB/Oracle/ssh-key-2026-07-25.key`|
-|Chave do console serial (servidor vvy)|`/mnt/pve/HD-WD500GB/Dados-WD500GB/Oracle/ssh-key-2026-07-26.key`|
+|Chaves autorizadas na VM|`ssh-key-2026-07-25` (RSA, antiga) e `<OCI_TENANCY_EMAIL>` (ed25519, a usada no dia a dia)|
+|Chaves antigas (RSA e do console serial)|arquivadas fora do servidor (o diretório `/mnt/pve/HD-WD500GB/Dados-WD500GB/Oracle/` não existe mais)|
 
 ---
 
@@ -176,7 +175,7 @@ Verificado Set/2026 — regras atuais (netfilter-persistent):
 
 ## 7. Software
 
-Verificado Set/2026:
+Verificado Nov/2026:
 
 |Software|Versão|Estado|
 |---|---|---|
@@ -185,6 +184,9 @@ Verificado Set/2026:
 |Tailscale|1.102.2|conectado, `--accept-routes`|
 |fail2ban|1.0.2|jail sshhd ativo|
 |Containers|vaultwarden + caddy|rodando (healthy)|
+|OpenBot|0.59.0|ativo (ver seção 11)|
+|OpenCode CLI|1.19.5|instalado (usuário `ubuntu`)|
+|Java|OpenJDK 21 (JDK + JRE)|instalado; resto do servidor de jogos, sem uso conhecido|
 |Snap|—|oracle-cloud-agent ativo|
 |cloud-init|—|completo|
 
@@ -236,3 +238,20 @@ chpasswd:
 - [x] Anti-idle: cron heartbeat (feito — atenção: PAYG reduz risco de reclaim, mas anti-idle mantem utilidade de monitoramento)
 
 > **NUNCA instalar UFW** — conflita com iptables-persistent da Oracle (ver skill oracle-cloud).
+
+---
+
+## 11. OpenBot e OpenCode
+
+
+| Item | Valor |
+|---|---|
+| OpenBot | 0.59.0 (servidor), serviço `openbot.service`, usuário `openbot`, servidor "OpenBot VPS", conta `<OCI_TENANCY_EMAIL>` |
+| Rede | não publica porta; conecta para fora e é acessado pelos apps (desktop, celular, navegador) |
+| Limites | `MemoryHigh=10G`, `MemoryMax=12G`, `CPUQuota=300%` em `/etc/systemd/system/openbot.service.d/limits.conf` |
+| Dados | `/var/lib/openbot` e chave de criptografia em `/srv/openbot-hosted` (backup dos dois juntos) |
+| OpenCode CLI | 1.19.5, usuário `ubuntu`, credencial em `~/.local/share/opencode/auth.json` |
+| OpenCode do OpenBot | runtime próprio 2.2.5 com banco de credenciais separado; login: `sudo -u openbot -H bash -c 'cd ~ && <runtime>/bin/opencode auth login opencode --method device'` |
+| Provedores no app | NVIDIA NIM (NV1 a NV3, personalizados) e OpenCode; modelos gratuitos `opencode/*-free` dividem uma cota compartilhada e podem falhar |
+
+Comandos: `sudo openbot status`, `sudo openbot logs -f`, `sudo openbot restart`, `sudo openbot update`, `systemd-cgtop`. Detalhes e pitfalls: `PROXMOX_VVY.md` seção 20.8 e a skill `proxmox-ai-integration`.

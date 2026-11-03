@@ -18,7 +18,7 @@
 | ----- | -------------- | ---------------- | --------------- | --------------- |
 | 24 GB | DDR3 1600 MT/s | 8 GB Registered (Samsung) | 16 GB Registered (Micron) | Multi-bit Ativo |
 
-> **Jul/2026:** O pente de 16GB (Micron) apresenta erros corrigíveis (CE) contínuos detectados via EDAC — causa raiz dos hard freezes do servidor. Pente de 8GB (Samsung) saudável. Pentes reposicionados após limpeza física. Monitoramento ativo via `mce-collector.sh` (cron Hermes 5 min).
+> **Jul/2026:** O pente de 16GB (Micron) apresenta erros corrigíveis (CE) contínuos detectados via EDAC — causa raiz dos hard freezes do servidor. Pente de 8GB (Samsung) saudável. Pentes reposicionados após limpeza física. Monitoramento ativo via `mce-collector.sh` (cron agente de IA 5 min).
 
 ### Armazenamento de Sistema (SSDs – ambos 128 GB)
 
