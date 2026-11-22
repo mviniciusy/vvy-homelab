@@ -70,7 +70,7 @@ graph TB
 | [Proxmox Setup](docs/proxmox-setup.md)             | Virtualização Proxmox VE 9.2.11, containers LXC e VMs                                      |
 | [Storage](docs/storage.md)                         | HDs de dados, pontos de montagem e UUIDs                                                  |
 | [Networking](docs/networking.md)                   | VPN Tailscale, nós, subnet router e acesso remoto                                         |
-| [Backup](docs/backup.md)                           | Sistema de backup — rclone + Google Drive 2TB (CT 105)                                    |
+| [Backup](docs/backup.md)                           | Sistema de backup — rclone + Google Drive 2TB (CT 105) e painel [vvy-backup](https://github.com/mviniciusy/vvy-backup) |
 | [Monitoring - Zabbix](docs/monitoring-zabbix.md)   | Zabbix 7.2, hosts monitorados e thresholds                                                |
 | [Monitoring - Grafana](docs/monitoring-grafana.md) | Grafana 12.4 + Prometheus + Node Exporter                                                 |
 | [Scripts](docs/scripts.md)                         | Scripts de telemetria e automação                                                         |
@@ -98,3 +98,9 @@ graph TB
 | [`scripts/backup/snapshot_mensal.sh`](scripts/backup/snapshot_mensal.sh) | vzdump CTs 112,120 mensal (2º domingo) + upload Drive | host vvy | DOM 01:30 (guarda dias 8-14) |
 | [`scripts/backup/backup_proxmox_config.sh`](scripts/backup/backup_proxmox_config.sh) | tar /etc/pve/ + configs Proxmox + upload Drive | host vvy | Diário 02:00 |
 | [`scripts/backup/sync_root.sh`](scripts/backup/sync_root.sh) | tar.gz 7 pastas /root + upload Drive | host vvy | QUA 03:00 |
+
+---
+
+## Repositórios Relacionados
+
+- **[vvy-backup](https://github.com/mviniciusy/vvy-backup)** — painel web em Go (rodando no CT 105) para agendar, executar e monitorar os syncs via `rclone rcd` e registrar os resultados dos jobs do host via `bm-run`.

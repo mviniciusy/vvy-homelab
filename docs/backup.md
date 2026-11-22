@@ -10,6 +10,8 @@
 
 **Sistema atual:** rclone no CT 105 (LXC, Debian 12) com sync espelhado para Google Drive 2TB. Web GUI do rclone (rcd) na porta 5572.
 
+**Painel web:** [vvy-backup](https://github.com/mviniciusy/vvy-backup) — aplicação Go no CT 105 (porta 8080) para agendar, executar e monitorar os syncs pelo `rclone rcd` e receber resultados dos scripts do host via `bm-run`.
+
 ## Container CT 105 — backup-manager
 
 | Parametro | Valor |

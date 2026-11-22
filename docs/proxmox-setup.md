@@ -33,7 +33,7 @@ graph LR
 |ID|Nome|IP|Cores|Storage|Serviço|
 |---|---|---|---|---|---|
 |101|pihole|`<PIHOLE_IP>`|2|local-lvm|Pi-hole – DNS/bloqueio anúncios|
-|105|backup-manager|`<BACKUP_MANAGER_IP>`|2|nvme128:4G|rclone – sync espelhado Google Drive + Web GUI|
+|105|backup-manager|`<BACKUP_MANAGER_IP>`|2|nvme128:4G|rclone + [vvy-backup](https://github.com/mviniciusy/vvy-backup) – sync Google Drive + painel Web|
 |112|handbrake|`<HANDBRAKE_IP>`:5800|6|local-lvm|Handbrake – transcodificação (parado)|
 |120|qbit-vpn|`<QBITTORRENT_IP>`:8080|6|local-lvm|qBittorrent – cliente torrent|
 |160|zabbix|`<ZABBIX_IP>`|2|local-lvm (20GB)|Zabbix 7.2 – monitoramento|
